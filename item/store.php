@@ -1,51 +1,86 @@
 <?php
 session_start();
 include('../includes/config.php');
-$_SESSION['cost'] = trim($_POST['cost_price']);
-$_SESSION['sell'] = trim($_POST['sell_price']);
+
+// store form inputs temporarily
+$_SESSION['brand'] = trim($_POST['brand_name']);
+$_SESSION['scent'] = trim($_POST['scent_type']);
+$_SESSION['size'] = trim($_POST['size']);
+$_SESSION['price'] = trim($_POST['price']);
 $_SESSION['desc'] = trim($_POST['description']);
 $_SESSION['qty'] = $_POST['quantity'];
 
-
 if (isset($_POST['submit'])) {
-    $cost =  trim($_POST['cost_price']);
-    $sell = trim($_POST['sell_price']);
+    $brand = trim($_POST['brand_name']);
+    $scent = trim($_POST['scent_type']);
+    $size = trim($_POST['size']);
+    $price = trim($_POST['price']);
     $desc = trim($_POST['description']);
     $qty = $_POST['quantity'];
 
-    if (empty($_POST['description'])) {
-        $_SESSION['descError'] = 'Please input a Product description';
-
+    // --- Validation ---
+    if (empty($brand)) {
+        $_SESSION['brandError'] = 'Please enter brand name.';
         header("Location: create.php");
+        exit();
     }
 
-    if (empty($_POST['cost_price']) || (! is_numeric($cost))) {
-        $_SESSION['costError'] = 'error product price format';
+    if (empty($price) || !is_numeric($price)) {
+        $_SESSION['priceError'] = 'Invalid price format.';
         header("Location: create.php");
+        exit();
     }
 
-    if (empty($_POST['sell_price']) || (! is_numeric($sell))) {
-        $_SESSION['sellError'] = 'error product price format';
+    if (empty($qty) || !is_numeric($qty)) {
+        $_SESSION['qtyError'] = 'Invalid quantity.';
         header("Location: create.php");
+        exit();
     }
-    if (isset($_FILES['img_path'])) {
-        if ($_FILES['img_path']['type'] == "image/jpeg" || $_FILES['img_path']['type'] == "image/jpg" || $_FILES['img_path']['type'] == "image/png") {
+
+    // --- Handle image upload ---
+    $target = null;
+    if (isset($_FILES['img_path']) && $_FILES['img_path']['error'] == 0) {
+        $fileType = $_FILES['img_path']['type'];
+        if (in_array($fileType, ["image/jpeg", "image/jpg", "image/png"])) {
             $source = $_FILES['img_path']['tmp_name'];
-            $target = 'images/' . $_FILES['img_path']['name'];
-            move_uploaded_file($source, $target) or die("Couldn't copy");
+            $target = 'images/' . basename($_FILES['img_path']['name']);
+            move_uploaded_file($source, $target) or die("Couldn't copy image.");
         } else {
-            $_SESSION['imageError'] = "wrong file type";
+            $_SESSION['imageError'] = "Invalid file type — only JPG, JPEG, PNG allowed.";
             header("Location: create.php");
+            exit();
         }
     }
 
-    $sql = "INSERT INTO item(description, cost_price, sell_price, img_path) VALUES('{$desc}', '{$cost}', '{$sell}','{$target}')";
+    // --- Insert into products table ---
+    $sql = "
+        INSERT INTO products (brand_name, scent_type, size, price, description, image, status)
+        VALUES ('{$brand}', '{$scent}', '{$size}', '{$price}', '{$desc}', '{$target}', 'available')
+    ";
 
     $result = mysqli_query($conn, $sql);
 
-    $q_stock = "INSERT INTO stock(item_id, quantity) VALUES(LAST_INSERT_ID(), {$qty})";
-    $result2 = mysqli_query($conn, $q_stock);
-    if($result && $result2) {
+    if (!$result) {
+        die('Product insert error: ' . mysqli_error($conn));
+    }
+
+    // --- Get the new product_id ---
+    $product_id = mysqli_insert_id($conn);
+
+    // --- Insert into inventory table ---
+    $updated_by = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'NULL';
+    $q_inventory = "
+        INSERT INTO inventory (product_id, quantity, restock_date, updated_by)
+        VALUES ('{$product_id}', '{$qty}', NOW(), {$updated_by})
+    ";
+
+    $result2 = mysqli_query($conn, $q_inventory);
+
+    if ($result && $result2) {
         header("Location: index.php");
+        exit();
+    } else {
+        echo "Inventory insert error: " . mysqli_error($conn);
     }
 }
+?>
