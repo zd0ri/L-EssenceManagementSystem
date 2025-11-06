@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
     integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link href="http://localhost/shop-ns-2025/includes/style/style.css" rel="stylesheet" type="text/css">
+  <link href="http://localhost/essence_db/includes/style/style.css" rel="stylesheet" type="text/css">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
   </script>
@@ -42,12 +42,12 @@
                     </a>';
               echo '<ul class="dropdown-menu">';
               if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
-                echo "<li><a class='dropdown-item' href='http://localhost/shop-ns-2025/admin/item/index.php'>Items</a></li>";
-                echo "<li><a class='dropdown-item' href='http://localhost/shop-ns-2025/admin/orders.php'>Orders</a></li>";
-                echo "<li><a class='dropdown-item' href='http://localhost/shop-ns-2025/admin/users.php'>Users</a></li>";
+                echo "<li><a class='dropdown-item' href='http://localhost/essence_db/admin/item/index.php'>Items</a></li>";
+                echo "<li><a class='dropdown-item' href='http://localhost/essence_db/admin/orders.php'>Orders</a></li>";
+                echo "<li><a class='dropdown-item' href='http://localhost/essence_db/admin/users.php'>Users</a></li>";
               } else {
-                echo '<li><a class="dropdown-item" href="./user/profile.php">Profile</a></li>';
-                echo '<li><a class="dropdown-item" href="../user/myorders.php">My Orders</a></li>';
+                echo '<li><a class="dropdown-item" href="./users/profile.php">Profile</a></li>';
+                echo '<li><a class="dropdown-item" href="../users/myorders.php">My Orders</a></li>';
               }
               echo "</ul>";
             }
@@ -65,19 +65,19 @@
 
         <!-- Icons section -->
         <div class="d-flex align-items-center">
-          <a href="http://localhost/shop-ns-2025/user/profile.php" class="text-dark me-3">
+          <a href="http://localhost/essence_db/users/profile.php" class="text-dark me-3">
             <i class="fa-solid fa-user fa-lg"></i>
           </a>
-          <a href="http://localhost/shop-ns-2025/user/cart.php" class="text-dark me-3">
+          <a href="http://localhost/essence_db/cart/view_cart.php" class="text-dark me-3">
             <i class="fa-solid fa-cart-shopping fa-lg"></i>
           </a>
 
           <?php
           if (!isset($_SESSION['user_id'])) {
-            echo "<a href='http://{$_SERVER['SERVER_NAME']}/shop-ns-2025/user/login.php' class='btn btn-outline-primary'>Login</a>";
+            echo "<a href='http://{$_SERVER['SERVER_NAME']}/essence_db/users/login.php' class='btn btn-outline-primary'>Login</a>";
           } else {
             echo "<span class='me-2'>{$_SESSION['email']}</span>";
-            echo "<a href='http://{$_SERVER['SERVER_NAME']}/shop-ns-2025/user/logout.php' class='btn btn-outline-danger'>Logout</a>";
+            echo "<a href='http://{$_SERVER['SERVER_NAME']}/essence_db/users/logout.php' class='btn btn-outline-danger'>Logout</a>";
           }
           ?>
         </div>

@@ -5,20 +5,21 @@ session_start();
 include('../includes/header.php');
 include('../includes/config.php');
 
-$orderId = $_GET['id'];
+$orderId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $_SESSION['orderId'] = $orderId;
 
-$sql = "SELECT lname, fname, addressline, town, zipcode, phone, orderinfo_id, status FROM `orderdetails` WHERE orderinfo_id = $orderId LIMIT 1";
+// fetch order and customer info using current schema
+$sql = "SELECT o.order_id, o.status, c.fullname, c.address, c.contact FROM orders o INNER JOIN customers c ON o.customer_id = c.customer_id WHERE o.order_id = {$orderId} LIMIT 1";
 $result = mysqli_query($conn, $sql);
 $customer = mysqli_fetch_assoc($result);
-echo $sql;
-$sql = "SELECT description, quantity, sell_price  FROM `orderdetails` WHERE orderinfo_id = $orderId ";
+
+$sql = "SELECT p.brand_name AS description, oi.quantity, oi.price_each AS sell_price FROM order_items oi INNER JOIN products p ON oi.product_id = p.product_id WHERE oi.order_id = {$orderId}";
 $items = mysqli_query($conn, $sql);
 
 ?>
-<h2><?= $customer['orderinfo_id'] ?> </h2>
-<h3><?php echo "{$customer['lname']} {$customer['fname']}" ?></h3>
-<p><?php echo "{$customer['addressline']} {$customer['town']} {$customer['zipcode']} {$customer['phone']}" ?></p>
+<h2><?= $customer['order_id'] ?> </h2>
+<h3><?php echo htmlspecialchars($customer['fullname'] ?? ''); ?></h3>
+<p><?php echo htmlspecialchars(($customer['address'] ?? '') . ' ' . ($customer['contact'] ?? '')); ?></p>
 <table class="table table-striped table-bordered">
     <thead>
         <th>item name</th>
@@ -46,13 +47,14 @@ $items = mysqli_query($conn, $sql);
     }
     ?>
 </table>
-<h4><?= $grandTotal ?></h4>
-<form action="updateOrder.php" method="POST">
-<select class="form-select form-control" aria-label="Default select example" name="status">
-    <option selected>Open this select menu</option>
-    <option value="Processing">processing</option>
-    <option value="Delivered">delivered</option>
-    <option value="Canceled">canceled</option>
+<h4><?= number_format($grandTotal, 2) ?></h4>
+<form action="updateorder.php" method="POST">
+<select class="form-select form-control" aria-label="Order status" name="status">
+    <option value="pending" <?= ($customer['status'] == 'pending') ? 'selected' : '' ?>>pending</option>
+    <option value="processing" <?= ($customer['status'] == 'processing') ? 'selected' : '' ?>>processing</option>
+    <option value="shipped" <?= ($customer['status'] == 'shipped') ? 'selected' : '' ?>>shipped</option>
+    <option value="completed" <?= ($customer['status'] == 'completed') ? 'selected' : '' ?>>completed</option>
+    <option value="cancelled" <?= ($customer['status'] == 'cancelled') ? 'selected' : '' ?>>cancelled</option>
 </select>
 <button type="submit" class="btn btn-primary">update order</button>
 </form>

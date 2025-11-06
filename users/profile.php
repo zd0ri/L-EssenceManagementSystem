@@ -4,24 +4,41 @@ include("../includes/header.php");
 
 include("../includes/config.php");
 if (isset($_POST['submit'])) {
+    // normalize session key
+    $current_user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
     $lname = trim($_POST['lname']);
     $fname = trim($_POST['fname']);
-     echo strip_tags($_POST['fname']);
     $title = trim($_POST['title']);
     $address = trim($_POST['address']);
     $town = trim($_POST['town']);
     $zipcode = trim($_POST['zipcode']);
     $phone = trim($_POST['phone']);
 
-    $sql = "INSERT INTO customer (title, lname, fname, addressline, town, zipcode, phone, user_id) VALUES ('$title', '$lname', '$fname', '$address', '$town', '$zipcode', '$phone', {$_SESSION['userId']} ) ";
+    // Schema uses `customers` table. We'll insert a row mapping to users.user_id
+    $fullname = mysqli_real_escape_string($conn, trim($fname . ' ' . $lname));
+    $contact = mysqli_real_escape_string($conn, $phone);
+    $address_esc = mysqli_real_escape_string($conn, $address);
+    $email = isset($_SESSION['email']) ? mysqli_real_escape_string($conn, $_SESSION['email']) : '';
+
+    if (!$current_user_id) {
+        $_SESSION['message'] = 'You must be logged in to save a profile.';
+        header("Location: ../users/login.php");
+        exit();
+    }
+
+    $sql = "INSERT INTO customers (user_id, fullname, contact, address, email) VALUES ({$current_user_id}, '{$fullname}', '{$contact}', '{$address_esc}', '{$email}')";
 
     $result = mysqli_query($conn, $sql);
     if ($result) {
         $_SESSION['success'] = 'profile saved';
         header("Location: profile.php");
+        exit();
+    } else {
+        $_SESSION['message'] = 'Could not save profile: ' . mysqli_error($conn);
     }
 }
-print_r($_SESSION);
+// print session for debugging
+// print_r($_SESSION);
 ?>
 
 <div class="container-xl px-4 mt-4">

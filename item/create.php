@@ -14,54 +14,38 @@ include('../includes/config.php');
                 <input type="text"
                     class="form-control"
                     id="name"
-                    placeholder="Enter item name"
-                    name="description"
-                    value="<?php
-                            if (isset($_SESSION['desc']))
-                                echo $_SESSION['desc'];
-                            ?>" />
+                    placeholder="Enter brand name"
+                    name="brand_name"
+                    value="<?php if (isset($_SESSION['brand'])) echo htmlspecialchars($_SESSION['brand']); ?>" />
 
                 <small>
                     <?php
-                    if (isset($_SESSION['descError'])) {
-                        echo $_SESSION['descError'];
-                        unset($_SESSION['descError']);
+                    if (isset($_SESSION['brandError'])) {
+                        echo $_SESSION['brandError'];
+                        unset($_SESSION['brandError']);
                     }
                     ?>
                 </small>
 
-                <label for="cost">Cost Price</label>
-                <input
-                    type="text"
-                    class="form-control"
-                    id="cost"
-                    placeholder="Enter item cost price"
-                    name="cost_price"
-                    value="<?php
-                            if (isset($_SESSION['cost']))
-                                echo $_SESSION['cost'];
-                            ?>" />
+                <label for="scent">Scent / Short Description</label>
+                <input type="text" class="form-control" id="scent" placeholder="Enter scent or short description" name="scent_type" value="<?php if (isset($_SESSION['scent'])) echo htmlspecialchars($_SESSION['scent']); ?>" />
                 <small>
-                    <?php
-                    if (isset($_SESSION['costError'])) {
-                        echo $_SESSION['costError'];
-                        unset($_SESSION['costError']);
-                    }
-                    ?></small>
-                <label for="sell">sell price</label>
+                    <?php if (isset($_SESSION['scentError'])) { echo $_SESSION['scentError']; unset($_SESSION['scentError']); } ?>
+                </small>
+                <label for="size">Size</label>
 
-                <input type="text" class="form-control" id="sell" placeholder="Enter sell price" name="sell_price">
+                <input type="text" class="form-control" id="size" placeholder="e.g. 50ml" name="size" value="<?php if (isset($_SESSION['size'])) echo $_SESSION['size']; ?>">
+                <label for="price">Price</label>
+                <input type="text" class="form-control" id="price" placeholder="Enter price" name="price" value="<?php if (isset($_SESSION['price'])) echo $_SESSION['price']; ?>">
                 <small>
-                    <?php
-                    if (isset($_SESSION['sellError'])) {
-                        echo $_SESSION['sellError'];
-                        unset($_SESSION['sellError']);
-                    }
-                    ?></small>
+                    <?php if (isset($_SESSION['priceError'])) { echo $_SESSION['priceError']; unset($_SESSION['priceError']); } ?>
+                </small>
 
                 <label for="qty">quantity</label>
 
-                <input type="number" class="form-control" id="qty" placeholder="1" name="quantity" />
+                <input type="number" class="form-control" id="qty" placeholder="1" name="quantity" value="<?php if (isset($_SESSION['qty'])) echo (int)$_SESSION['qty']; ?>" />
+                <label for="description">Full Description</label>
+                <textarea class="form-control" id="description" name="description"><?php if (isset($_SESSION['desc'])) echo htmlspecialchars($_SESSION['desc']); ?></textarea>
                 <input class="form-control" type="file" name="img_path" /><br />
                 <small>
                     <?php

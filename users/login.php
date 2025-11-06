@@ -7,7 +7,8 @@ if (isset($_POST['submit'])) {
   
     $email = trim($_POST['email']);
     $pass = sha1(trim($_POST['password']));
-    $sql = "SELECT id, email, role FROM users WHERE email=? AND password=? LIMIT 1";
+    // match schema: users.user_id is the PK
+    $sql = "SELECT user_id, email, role FROM users WHERE email=? AND password=? LIMIT 1";
     $stmt = mysqli_prepare($conn, $sql);
     mysqli_stmt_bind_param($stmt, 'ss', $email, $pass);
     mysqli_stmt_execute($stmt);
@@ -19,6 +20,7 @@ if (isset($_POST['submit'])) {
         mysqli_stmt_fetch($stmt);
        
         $_SESSION['email'] = $email;
+        // normalize session key to `user_id`
         $_SESSION['user_id'] = $user_id;
         $_SESSION['role'] = $role;
         header("Location: ../index.php");

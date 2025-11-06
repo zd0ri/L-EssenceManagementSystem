@@ -17,10 +17,10 @@ else {
 
 
 if ($keyword) {
-    $sql = "SELECT * FROM item LEFT JOIN stock USING (item_id) WHERE description LIKE '%{$keyword}%'";
+    $sql = "SELECT p.*, i.quantity FROM products p LEFT JOIN inventory i ON p.product_id = i.product_id WHERE LOWER(p.brand_name) LIKE '%{$keyword}%' OR LOWER(p.description) LIKE '%{$keyword}%'";
     $result = mysqli_query($conn, $sql);
 } else {
-    $sql = "SELECT * FROM item LEFT JOIN stock USING (item_id)";
+    $sql = "SELECT p.*, i.quantity FROM products p LEFT JOIN inventory i ON p.product_id = i.product_id";
     $result = mysqli_query($conn, $sql);
 }
 
@@ -35,14 +35,15 @@ $itemCount = mysqli_num_rows($result);
         <?php
         while ($row = mysqli_fetch_assoc($result)) {
             echo "<tr>";
-            echo "<td><img src='{$row['img_path']}' width='150' height='150' /> </td>";
-            echo "<td>{$row['item_id']}</td>";
-            echo "<td>{$row['description']}</td>";
-            echo "<td>{$row['sell_price']}</td>";
-            echo "<td>{$row['cost_price']}</td>";
-            echo "<td>{$row['quantity']}</td>";
+            $img = htmlspecialchars($row['image'] ?? '');
+            echo "<td><img src='{$img}' width='150' height='150' /> </td>";
+            echo "<td>{$row['product_id']}</td>";
+            echo "<td>" . htmlspecialchars($row['brand_name'] ?? '') . "</td>";
+            echo "<td>" . htmlspecialchars($row['description'] ?? '') . "</td>";
+            echo "<td>" . htmlspecialchars($row['price'] ?? '') . "</td>";
+            echo "<td>" . htmlspecialchars($row['quantity'] ?? 0) . "</td>";
 
-            echo "<td><a href='edit.php?id={$row['item_id']}'><i class='fa-regular fa-pen-to-square' style='color: blue'></i></a><a href='delete.php?id={$row['item_id']}'><i class='fa-solid fa-trash' style='color: red'></i></a></td>";
+            echo "<td><a href='edit.php?id={$row['product_id']}'><i class='fa-regular fa-pen-to-square' style='color: blue'></i></a><a href='delete.php?id={$row['product_id']}'><i class='fa-solid fa-trash' style='color: red'></i></a></td>";
             echo "</tr>";
         }
         ?>

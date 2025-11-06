@@ -12,15 +12,20 @@ if (isset($_POST["type"]) && $_POST["type"] == 'add' && $_POST["item_qty"] > 0) 
     unset($new_product['type']);
     // print_r($new_product);
 
-    $sql =  "SELECT i.item_id AS itemId, description, img_path, sell_price FROM item i INNER JOIN stock s USING (item_id) WHERE i.item_id = 
-    {$new_product['item_id']} LIMIT 1 ";
+    // adapt to new schema: products and inventory
+    $product_id = (int)$new_product['item_id'];
+    $sql =  "SELECT p.product_id AS productId, p.brand_name as description, p.image as img_path, p.price as sell_price, i.quantity
+             FROM products p
+             LEFT JOIN inventory i ON p.product_id = i.product_id
+             WHERE p.product_id = {$product_id} LIMIT 1";
     // echo $sql;
     $result = mysqli_query($conn, $sql);
     $num_rows = mysqli_num_rows($result);
     // echo "<p>There are currently $num_rows rows in the table</p>";
     $row = mysqli_fetch_assoc($result);
-    $new_product["item_name"] = $row['description'];
-    $new_product["item_price"] = $row['sell_price'];
+    $new_product["item_name"] = $row['description'] ?? '';
+    $new_product["item_price"] = $row['sell_price'] ?? 0;
+    $new_product["max_qty"] = isset($row['quantity']) ? (int)$row['quantity'] : 0;
      print_r($new_product);
     if (isset($_SESSION["cart_products"])) {
         if (isset($_SESSION["cart_products"][$new_product['item_id']])) {
@@ -37,7 +42,7 @@ if (isset($_POST["type"]) && $_POST["type"] == 'add' && $_POST["item_qty"] > 0) 
 }
 
 if (isset($_POST["product_qty"]) || isset($_POST["remove_code"])) {
-    var_dump($_POST["remove_code"]);
+    // var_dump($_POST["remove_code"]);
     //update item quantity in product session
 
     if (isset($_POST["product_qty"]) && is_array($_POST["product_qty"])) {
