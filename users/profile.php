@@ -1,133 +1,198 @@
 <?php
 session_start();
 include("../includes/header.php");
-
 include("../includes/config.php");
-if (isset($_POST['submit'])) {
-    // normalize session key
-    $current_user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
-    $lname = trim($_POST['lname']);
-    $fname = trim($_POST['fname']);
-    $title = trim($_POST['title']);
-    $address = trim($_POST['address']);
-    $town = trim($_POST['town']);
-    $zipcode = trim($_POST['zipcode']);
-    $phone = trim($_POST['phone']);
 
-    // Schema uses `customers` table. We'll insert a row mapping to users.user_id
-    $fullname = mysqli_real_escape_string($conn, trim($fname . ' ' . $lname));
-    $contact = mysqli_real_escape_string($conn, $phone);
-    $address_esc = mysqli_real_escape_string($conn, $address);
-    $email = isset($_SESSION['email']) ? mysqli_real_escape_string($conn, $_SESSION['email']) : '';
+// ensure user logged in
+$current_user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
+if (!$current_user_id) {
+    $_SESSION['message'] = 'You must be logged in to edit your profile.';
+    header('Location: ../users/login.php');
+    exit();
+}
 
-    if (!$current_user_id) {
-        $_SESSION['message'] = 'You must be logged in to save a profile.';
-        header("Location: ../users/login.php");
+// Handle POST (single form: profile fields + optional image)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $posted_fullname = isset($_POST['fullname']) ? trim($_POST['fullname']) : '';
+    $posted_contact = isset($_POST['contact']) ? trim($_POST['contact']) : '';
+    $posted_address = isset($_POST['address']) ? trim($_POST['address']) : '';
+    $posted_email = isset($_POST['email']) ? trim($_POST['email']) : '';
+
+    if (empty($posted_fullname)) {
+        $_SESSION['message'] = 'Full name is required.';
+        header('Location: ' . $_SERVER['PHP_SELF']);
         exit();
     }
 
-    $sql = "INSERT INTO customers (user_id, fullname, contact, address, email) VALUES ({$current_user_id}, '{$fullname}', '{$contact}', '{$address_esc}', '{$email}')";
+    // check email uniqueness if changed
+    if (!empty($posted_email) && isset($_SESSION['email']) && $posted_email !== $_SESSION['email']) {
+        $posted_email_esc = mysqli_real_escape_string($conn, $posted_email);
+        $chk = mysqli_query($conn, "SELECT user_id FROM users WHERE email = '{$posted_email_esc}' AND user_id != {$current_user_id} LIMIT 1");
+        if ($chk && mysqli_num_rows($chk) > 0) {
+            $_SESSION['message'] = 'Email already in use by another account.';
+            header('Location: ' . $_SERVER['PHP_SELF']);
+            exit();
+        }
+    }
 
-    $result = mysqli_query($conn, $sql);
-    if ($result) {
-        $_SESSION['success'] = 'profile saved';
-        header("Location: profile.php");
-        exit();
+    // process uploaded image if present
+    if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] !== UPLOAD_ERR_NO_FILE) {
+        $file = $_FILES['profile_image'];
+        $allowed = ["image/jpeg" => 'jpg', "image/jpg" => 'jpg', "image/png" => 'png'];
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            $_SESSION['message'] = 'Error uploading file.';
+            header('Location: ' . $_SERVER['PHP_SELF']);
+            exit();
+        }
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+        if (!isset($allowed[$mime]) || $file['size'] > 5 * 1024 * 1024) {
+            $_SESSION['message'] = 'Invalid image. Use JPG/PNG up to 5MB.';
+            header('Location: ' . $_SERVER['PHP_SELF']);
+            exit();
+        }
+        $ext = $allowed[$mime];
+        $uploadDir = __DIR__ . '/../uploads';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+        $target = $uploadDir . "/profile_{$current_user_id}.{$ext}";
+        // remove old variants
+        foreach (['png','jpg','jpeg'] as $e) {
+            $old = $uploadDir . "/profile_{$current_user_id}.{$e}";
+            if (file_exists($old) && pathinfo($old, PATHINFO_EXTENSION) !== $ext) @unlink($old);
+        }
+        if (!move_uploaded_file($file['tmp_name'], $target)) {
+            $_SESSION['message'] = 'Failed to save uploaded image.';
+            header('Location: ' . $_SERVER['PHP_SELF']);
+            exit();
+        }
+    }
+
+    // update users.email if changed
+    if (!empty($posted_email) && (!isset($_SESSION['email']) || $posted_email !== $_SESSION['email'])) {
+        $posted_email_esc = mysqli_real_escape_string($conn, $posted_email);
+        $upd = mysqli_query($conn, "UPDATE users SET email = '{$posted_email_esc}' WHERE user_id = {$current_user_id}");
+        if (!$upd) {
+            $_SESSION['message'] = 'Failed to update email: ' . mysqli_error($conn);
+            header('Location: ' . $_SERVER['PHP_SELF']);
+            exit();
+        }
+        $_SESSION['email'] = $posted_email;
+    }
+
+    // insert or update customers
+    $fullname_esc = mysqli_real_escape_string($conn, $posted_fullname);
+    $contact_esc = mysqli_real_escape_string($conn, $posted_contact);
+    $address_esc = mysqli_real_escape_string($conn, $posted_address);
+    $email_for_customers = mysqli_real_escape_string($conn, $posted_email ?: ($_SESSION['email'] ?? ''));
+    $check = mysqli_query($conn, "SELECT customer_id FROM customers WHERE user_id = {$current_user_id} LIMIT 1");
+    if ($check && mysqli_num_rows($check) > 0) {
+        $r = mysqli_fetch_assoc($check);
+        $custId = (int)$r['customer_id'];
+        $sql = "UPDATE customers SET fullname='{$fullname_esc}', contact='{$contact_esc}', address='{$address_esc}', email='{$email_for_customers}' WHERE customer_id={$custId}";
     } else {
-        $_SESSION['message'] = 'Could not save profile: ' . mysqli_error($conn);
+        $sql = "INSERT INTO customers (user_id, fullname, contact, address, email) VALUES ({$current_user_id}, '{$fullname_esc}', '{$contact_esc}', '{$address_esc}', '{$email_for_customers}')";
+    }
+    if (!mysqli_query($conn, $sql)) {
+        $_SESSION['message'] = 'Failed to save profile: ' . mysqli_error($conn);
+        header('Location: ' . $_SERVER['PHP_SELF']);
+        exit();
+    }
+
+    $_SESSION['success'] = 'Profile updated successfully.';
+    header('Location: ' . $_SERVER['PHP_SELF']);
+    exit();
+}
+
+// load latest customer data to prefill form
+$fullname = '';
+$contact = '';
+$address = '';
+$email_input = $_SESSION['email'] ?? '';
+$q = "SELECT fullname, contact, address, email FROM customers WHERE user_id = {$current_user_id} LIMIT 1";
+$r = mysqli_query($conn, $q);
+if ($r && mysqli_num_rows($r) > 0) {
+    $row = mysqli_fetch_assoc($r);
+    $fullname = $row['fullname'] ?? '';
+    $contact = $row['contact'] ?? '';
+    $address = $row['address'] ?? '';
+    if (empty($email_input) && !empty($row['email'])) $email_input = $row['email'];
+}
+
+// determine avatar URL
+$avatarUrl = '/essence_db/uploads/default-avatar.png';
+$uploadDir = __DIR__ . '/../uploads';
+foreach (['png','jpg','jpeg'] as $e) {
+    $candidate = $uploadDir . "/profile_{$current_user_id}.{$e}";
+    if (file_exists($candidate)) {
+        $avatarUrl = '/essence_db/uploads/profile_' . $current_user_id . '.' . $e . '?t=' . filemtime($candidate);
+        break;
     }
 }
-// print session for debugging
-// print_r($_SESSION);
-?>
 
+?>
 <div class="container-xl px-4 mt-4">
     <?php include("../includes/alert.php"); ?>
-    <!-- Account page navigation-->
     <nav class="nav nav-borders">
-        <a class="nav-link active ms-0" href="https://www.bootdey.com/snippets/view/bs5-edit-profile-account-details" target="__blank">Profile</a>
-
+        <a class="nav-link active ms-0" href="#">Profile</a>
     </nav>
     <hr class="mt-0 mb-4">
-    <div class="row">
-        <div class="col-xl-4">
-            <!-- Profile picture card-->
-            <div class="card mb-4 mb-xl-0">
-                <div class="card-header">Profile Picture</div>
-                <div class="card-body text-center">
-                    <!-- Profile picture image-->
-                    <img class="img-account-profile rounded-circle mb-2" src="http://bootdey.com/img/Content/avatar/avatar1.png" alt="">
-                    <!-- Profile picture help block-->
-                    <div class="small font-italic text-muted mb-4">JPG or PNG no larger than 5 MB</div>
-                    <!-- Profile picture upload button-->
-                    <button class="btn btn-primary" type="button">Upload new image</button>
+
+    <form id="update-form" action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col-xl-4">
+                <div class="card mb-4 mb-xl-0">
+                    <div class="card-header">Change Profile Picture</div>
+                    <div class="card-body text-center">
+                        <img class="img-account-profile rounded-circle mb-2" src="<?php echo htmlspecialchars($avatarUrl); ?>" alt="Profile image" style="width:120px;height:120px;object-fit:cover;" />
+                        <div class="small font-italic text-muted mb-4">JPG or PNG no larger than 5 MB</div>
+                        <div class="mb-3">
+                            <input class="form-control" id="profile_image" type="file" name="profile_image" accept="image/png,image/jpeg">
+                        </div>
+                        <div class="small text-muted">Upload will replace existing image.</div>
+
+                        <!-- Inline account details shown under avatar (read-only) -->
+                        <hr />
+                        <div class="text-start">
+                            <p class="mb-1"><strong class="me-1">Full name:</strong> <?php echo htmlspecialchars($fullname); ?></p>
+                            <p class="mb-1"><strong class="me-1">Email:</strong> <?php echo htmlspecialchars($email_input ?? ($_SESSION['email'] ?? '')); ?></p>
+                            <p class="mb-1"><strong class="me-1">Contact:</strong> <?php echo htmlspecialchars($contact); ?></p>
+                            <p class="mb-0"><strong class="me-1">Address:</strong> <?php echo htmlspecialchars($address); ?></p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-xl-8">
-            <!-- Account details card-->
-            <div class="card mb-4">
-                <div class="card-header">Account Details</div>
-                <div class="card-body">
-                    <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST">
 
-
-                        <!-- Form Row-->
-                        <div class="row gx-3 mb-3">
-                            <!-- Form Group (first name)-->
-                            <div class="col-md-6">
-                                <label class="small mb-1" for="inputFirstName">First name</label>
-                                <input class="form-control" id="inputFirstName" type="text" placeholder="Enter your first name" name="fname">
-                            </div>
-                            <!-- Form Group (last name)-->
-                            <div class="col-md-6">
-                                <label class="small mb-1" for="inputLastName">Last name</label>
-                                <input class="form-control" id="inputLastName" type="text" placeholder="Enter your last name" name="lname">
-                            </div>
-                        </div>
-                        <!-- Form Row        -->
-                        <div class="row gx-3 mb-3">
-
-                            <div class="col-md-6">
-                                <label class="small mb-1" for="address">Address</label>
-                                <input class="form-control" id="address" type="text" placeholder="Enter your address" name="address">
-                            </div>
-                            <!-- Form Group (location)-->
-                            <div class="col-md-6">
-                                <label class="small mb-1" for="town">town</label>
-                                <input class="form-control" id="town" type="text" placeholder="Enter your town" name="town">
-                            </div>
-                        </div>
-                        <div class="row gx-3 mb-3">
-                            <!-- Form Group (phone number)-->
-                            <div class="col-md-6">
-                                <label class="small mb-1" for="zip">zip code</label>
-                                <input class="form-control" id="zip" type="tel" placeholder="Enter zipcode" name="zipcode">
-                            </div>
-
+            <div class="col-xl-8">
+                <div class="card mb-4">
+                    <div class="card-header">Update Information</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label" for="fullname">Full name</label>
+                            <input class="form-control" id="fullname" type="text" name="fullname" value="<?php echo htmlspecialchars($fullname); ?>">
                         </div>
 
-                        <div class="col-md-6">
-
-
-                            <label class="small mb-1" for="title">title</label>
-                            <input class="form-control" id="title" type="text" name="title">
-                        </div>
-                        <!-- Form Row-->
-                        <div class="row gx-3 mb-3">
-                            <!-- Form Group (phone number)-->
-                            <div class="col-md-6">
-                                <label class="small mb-1" for="inputPhone">Phone number</label>
-                                <input class="form-control" id="inputPhone" type="tel" placeholder="Enter your phone number" name="phone">
-                            </div>
-
+                        <div class="mb-3">
+                            <label class="form-label" for="address">Address</label>
+                            <input class="form-control" id="address" type="text" name="address" value="<?php echo htmlspecialchars($address); ?>">
                         </div>
 
-                        <!-- Save changes button-->
+                        <div class="mb-3">
+                            <label class="form-label" for="contact">Contact (phone)</label>
+                            <input class="form-control" id="contact" type="tel" name="contact" value="<?php echo htmlspecialchars($contact); ?>">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="email">Email</label>
+                            <input class="form-control" id="email" type="email" name="email" value="<?php echo htmlspecialchars($email_input); ?>">
+                        </div>
+
                         <button class="btn btn-primary" type="submit" name="submit">Save changes</button>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </form>
 </div>
+<?php
+// End of file - single handler and form are above. Removed duplicated block that caused parse errors.
