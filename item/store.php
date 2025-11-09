@@ -10,7 +10,7 @@ $_SESSION['price'] = trim($_POST['price']);
 $_SESSION['desc'] = trim($_POST['description']);
 $_SESSION['qty'] = $_POST['quantity'];
 
-if (isset($_POST['submit'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $brand = trim($_POST['brand_name']);
     $scent = trim($_POST['scent_type']);
     $size = trim($_POST['size']);
@@ -31,8 +31,9 @@ if (isset($_POST['submit'])) {
         exit();
     }
 
-    if (empty($qty) || !is_numeric($qty)) {
-        $_SESSION['qtyError'] = 'Invalid quantity.';
+    // Allow 0 (zero) quantity. Note: PHP considers the string '0' as empty(), so check explicitly.
+    if ($qty === '' || !is_numeric($qty) || (int)$qty < 0) {
+        $_SESSION['qtyError'] = 'Invalid quantity. Use 0 or a positive integer.';
         header("Location: create.php");
         exit();
     }
@@ -77,6 +78,61 @@ if (isset($_POST['submit'])) {
     $result2 = mysqli_query($conn, $q_inventory);
 
     if ($result && $result2) {
+        // create product_images table if not exists
+        $createImagesTable = "CREATE TABLE IF NOT EXISTS product_images (
+            product_image_id INT AUTO_INCREMENT PRIMARY KEY,
+            product_id INT NOT NULL,
+            path VARCHAR(255) NOT NULL,
+            uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        mysqli_query($conn, $createImagesTable);
+
+        // handle multiple images upload (input name images[])
+        $uploadDir = __DIR__ . '/../uploads/products';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+        if (isset($_FILES['images']) && is_array($_FILES['images']['name'])) {
+            $inserted = 0;
+            for ($i = 0; $i < count($_FILES['images']['name']); $i++) {
+                if (!isset($_FILES['images']['error'][$i])) continue;
+                $err = $_FILES['images']['error'][$i];
+                if ($err !== UPLOAD_ERR_OK) {
+                    if ($err !== UPLOAD_ERR_NO_FILE) {
+                        $_SESSION['imageError'][] = "Upload error for file index {$i}: code {$err}";
+                    }
+                    continue;
+                }
+                $tmp = $_FILES['images']['tmp_name'][$i];
+                $type = mime_content_type($tmp);
+                if (!in_array($type, ['image/jpeg','image/png','image/jpg'])) {
+                    $_SESSION['imageError'][] = "Unsupported file type for file index {$i}: {$type}";
+                    continue;
+                }
+                $basename = uniqid('prod_' . $product_id . '_') . '.' . (strpos($type,'png')!==false ? 'png' : 'jpg');
+                $targetPath = $uploadDir . '/' . $basename;
+                if (move_uploaded_file($tmp, $targetPath)) {
+                    $relPath = 'uploads/products/' . $basename;
+                    $relEsc = mysqli_real_escape_string($conn, $relPath);
+                    if (mysqli_query($conn, "INSERT INTO product_images (product_id, path) VALUES ({$product_id}, '{$relEsc}')")) {
+                        $inserted++;
+                    } else {
+                        $_SESSION['imageError'][] = 'DB insert failed for ' . $relPath . ': ' . mysqli_error($conn);
+                    }
+                } else {
+                    $_SESSION['imageError'][] = "Failed to move uploaded file for index {$i}.";
+                }
+            }
+            if ($inserted === 0 && !empty($_SESSION['imageError'])) {
+                $_SESSION['message'] = 'Image upload failed: ' . implode(' | ', $_SESSION['imageError']);
+                header("Location: create.php");
+                exit();
+            }
+        } elseif (isset($target) && $target) {
+            // backward compatibility: single image saved previously
+            $relPath = $target;
+            $relEsc = mysqli_real_escape_string($conn, $relPath);
+            mysqli_query($conn, "INSERT INTO product_images (product_id, path) VALUES ({$product_id}, '{$relEsc}')");
+        }
+
         header("Location: index.php");
         exit();
     } else {

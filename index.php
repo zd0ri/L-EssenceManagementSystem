@@ -90,13 +90,80 @@ if (isset($_SESSION["cart_products"]) && count($_SESSION["cart_products"]) > 0) 
             $desc = htmlspecialchars($row['description']);
             $brand = htmlspecialchars($row['brand_name']);
             $price = number_format($row['price'], 2);
-            $img = htmlspecialchars($row['image']);
-            $maxQty = (int)$row['quantity'];
+      $rawImage = $row['image'];
+      $maxQty = (int)$row['quantity'];
+      // determine display images: prefer product_images table (can be multiple)
+      $imgs = [];
+      $qpi = mysqli_query($conn, "SELECT path FROM product_images WHERE product_id = {$row['productId']} ORDER BY product_image_id ASC");
+      if ($qpi && mysqli_num_rows($qpi) > 0) {
+        while ($rpi = mysqli_fetch_assoc($qpi)) {
+          $imgs[] = $rpi['path'];
+        }
+      }
+      // fallback to legacy single image
+      if (empty($imgs) && !empty($rawImage)) {
+        $imgs[] = $rawImage;
+      }
     ?>
 
       <div class="col-md-3 col-sm-6">
         <div class="card border-0 shadow-sm text-center p-3">
-          <img src="./item/<?php echo $img; ?>" class="card-img-top img-fluid" style="height:250px; object-fit:cover;" alt="<?php echo $brand; ?>">
+          <?php
+          // build base url and check files correctly (filesystem path relative to this file)
+          $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+          $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
+
+          if (count($imgs) === 0) {
+            // no images
+            echo '<div style="height:250px; background:#f0f0f0; display:flex;align-items:center;justify-content:center;color:#888">No image</div>';
+          } elseif (count($imgs) === 1) {
+            $p = str_replace('\\', '/', $imgs[0]);
+            if (preg_match('#^https?://#i', $p)) {
+              $imgUrl = $p;
+              $fileExists = true;
+            } else {
+              $imgUrl = $baseUrl . ltrim($p, '/');
+              // file path should be relative to the project root (this file is in essence_db)
+              $fileExists = file_exists(__DIR__ . '/' . ltrim($p, '/'));
+            }
+            if (!empty($fileExists)) {
+              echo '<img src="' . htmlspecialchars($imgUrl) . '" class="card-img-top img-fluid" style="height:250px; object-fit:cover;" alt="' . htmlspecialchars($brand) . '">';
+            } else {
+              echo '<div style="height:250px; background:#fff3cd; display:flex;align-items:center;justify-content:center;color:#856404">Missing image</div>';
+            }
+          } else {
+            // multiple images: render a bootstrap carousel
+            $carouselId = 'homeCarousel_' . $row['productId'];
+            echo '<div id="' . $carouselId . '" class="carousel slide" data-bs-ride="carousel">';
+            echo '<div class="carousel-inner" style="height:250px;">';
+            foreach ($imgs as $i => $pRaw) {
+              $p = str_replace('\\', '/', $pRaw);
+              if (preg_match('#^https?://#i', $p)) {
+                $imgUrl = $p;
+                $fileExists = true;
+              } else {
+                $imgUrl = $baseUrl . ltrim($p, '/');
+                $fileExists = file_exists(__DIR__ . '/' . ltrim($p, '/'));
+              }
+              $active = $i === 0 ? ' active' : '';
+              echo '<div class="carousel-item' . $active . '">';
+              if ($fileExists) {
+                echo '<img src="' . htmlspecialchars($imgUrl) . '" class="d-block w-100" style="height:250px; object-fit:cover;" alt="' . htmlspecialchars($brand) . '">';
+              } else {
+                echo '<div style="height:250px; background:#f8d7da; display:flex;align-items:center;justify-content:center;color:#842029">Missing image</div>';
+              }
+              echo '</div>';
+            }
+            echo '</div>';
+            echo '<button class="carousel-control-prev" type="button" data-bs-target="#' . $carouselId . '" data-bs-slide="prev">';
+            echo '<span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Previous</span>';
+            echo '</button>';
+            echo '<button class="carousel-control-next" type="button" data-bs-target="#' . $carouselId . '" data-bs-slide="next">';
+            echo '<span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Next</span>';
+            echo '</button>';
+            echo '</div>';
+          }
+          ?>
           <div class="card-body">
             <h5 class="card-title"><?php echo $brand; ?></h5>
             <p class="text-muted small"><?php echo $desc; ?></p>

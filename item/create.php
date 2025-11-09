@@ -46,7 +46,8 @@ include('../includes/config.php');
                 <input type="number" class="form-control" id="qty" placeholder="1" name="quantity" value="<?php if (isset($_SESSION['qty'])) echo (int)$_SESSION['qty']; ?>" />
                 <label for="description">Full Description</label>
                 <textarea class="form-control" id="description" name="description"><?php if (isset($_SESSION['desc'])) echo htmlspecialchars($_SESSION['desc']); ?></textarea>
-                <input class="form-control" type="file" name="img_path" /><br />
+                <label for="images">Product images (JPG/PNG) — you can select multiple</label>
+                <input class="form-control" type="file" name="images[]" id="images" multiple accept="image/png,image/jpeg" /><br />
                 <small>
                     <?php
                     if (isset($_SESSION['imageError'])) {
