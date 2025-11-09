@@ -43,10 +43,12 @@
                       Admin
                     </a>';
               echo '<ul class="dropdown-menu">';
-              if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
-                echo "<li><a class='dropdown-item' href='http://localhost/essence_db/admin/item/index.php'>Items</a></li>";
-                echo "<li><a class='dropdown-item' href='http://localhost/essence_db/admin/orders.php'>Orders</a></li>";
-                echo "<li><a class='dropdown-item' href='http://localhost/essence_db/admin/users.php'>Users</a></li>";
+                if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
+                  // point the admin links to the actual admin pages in this project
+                  echo "<li><a class='dropdown-item' href='http://localhost/essence_db/admin/index.php'>Dashboard</a></li>";
+                  echo "<li><a class='dropdown-item' href='http://localhost/essence_db/item/index.php'>Items</a></li>";
+                  echo "<li><a class='dropdown-item' href='http://localhost/essence_db/admin/orders.php'>Orders</a></li>";
+                  echo "<li><a class='dropdown-item' href='http://localhost/essence_db/admin/users_manage.php'>Users</a></li>";
               } else {
                 echo '<li><a class="dropdown-item" href="./users/profile.php">Profile</a></li>';
                 echo '<li><a class="dropdown-item" href="../users/myorders.php">My Orders</a></li>';
