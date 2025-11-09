@@ -5,7 +5,7 @@ include('./includes/config.php');
 ?>
 
 <!-- Hero Section -->
-<section class="hero text-center py-5" style="background-color:#fff;">
+<section class="hero text-center py-5">
   <div class="container">
     <h1 class="display-4 fw-bold" style="font-family: 'Playfair Display', serif;">
       Smell is a word, Perfume is <span style="font-style: italic;">literature</span>
