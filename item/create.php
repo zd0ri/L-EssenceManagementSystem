@@ -45,7 +45,7 @@ include('../includes/config.php');
 
                 <label for="qty">quantity</label>
 
-                <input type="number" class="form-control" id="qty" placeholder="1" name="quantity" value="<?php if (isset($_SESSION['qty'])) echo (int)$_SESSION['qty']; ?>" />
+                <input type="number" class="form-control" id="qty" placeholder="1" name="quantity" value="<?php echo isset($_SESSION['qty']) ? (int)$_SESSION['qty'] : 1; ?>" />
                 <label for="description">Full Description</label>
                 <textarea class="form-control" id="description" name="description"><?php if (isset($_SESSION['desc'])) echo htmlspecialchars($_SESSION['desc']); ?></textarea>
                 <label for="images">Product images (JPG/PNG) — you can select multiple</label>

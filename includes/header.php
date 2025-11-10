@@ -31,10 +31,10 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="../index.php">Home</a>
+            <a class="nav-link active" aria-current="page" href="/essence_db/index.php">Home</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="../about.php">About</a>
+            <a class="nav-link" href="/essence_db/about.php">About</a>
           </li>
           <li class="nav-item dropdown">
             <?php 
@@ -45,13 +45,13 @@
               echo '<ul class="dropdown-menu">';
                 if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
                   // point the admin links to the actual admin pages in this project
-                  echo "<li><a class='dropdown-item' href='http://localhost/essence_db/admin/index.php'>Dashboard</a></li>";
-                  echo "<li><a class='dropdown-item' href='http://localhost/essence_db/item/index.php'>Items</a></li>";
-                  echo "<li><a class='dropdown-item' href='http://localhost/essence_db/admin/orders.php'>Orders</a></li>";
-                  echo "<li><a class='dropdown-item' href='http://localhost/essence_db/admin/users_manage.php'>Users</a></li>";
+                  echo "<li><a class='dropdown-item' href='/essence_db/admin/index.php'>Dashboard</a></li>";
+                  echo "<li><a class='dropdown-item' href='/essence_db/item/index.php'>Items</a></li>";
+                  echo "<li><a class='dropdown-item' href='/essence_db/admin/orders.php'>Orders</a></li>";
+                  echo "<li><a class='dropdown-item' href='/essence_db/admin/users_manage.php'>Users</a></li>";
               } else {
-                echo '<li><a class="dropdown-item" href="./users/profile.php">Profile</a></li>';
-                echo '<li><a class="dropdown-item" href="../users/myorders.php">My Orders</a></li>';
+                echo '<li><a class="dropdown-item" href="/essence_db/users/profile.php">Profile</a></li>';
+                echo '<li><a class="dropdown-item" href="/essence_db/users/myorders.php">My Orders</a></li>';
               }
               echo "</ul>";
             }
@@ -69,19 +69,19 @@
 
         <!-- Icons section -->
         <div class="d-flex align-items-center">
-          <a href="http://localhost/essence_db/users/profile.php" class="text-dark me-3">
+          <a href="/essence_db/users/profile.php" class="text-dark me-3">
             <i class="fa-solid fa-user fa-lg"></i>
           </a>
-          <a href="http://localhost/essence_db/cart/view_cart.php" class="text-dark me-3">
+          <a href="/essence_db/cart/view_cart.php" class="text-dark me-3">
             <i class="fa-solid fa-cart-shopping fa-lg"></i>
           </a>
 
           <?php
           if (!isset($_SESSION['user_id'])) {
-            echo "<a href='http://{$_SERVER['SERVER_NAME']}/essence_db/users/login.php' class='btn btn-outline-primary'>Login</a>";
+            echo "<a href='/essence_db/users/login.php' class='btn btn-outline-primary'>Login</a>";
           } else {
             echo "<span class='me-2'>{$_SESSION['email']}</span>";
-            echo "<a href='http://{$_SERVER['SERVER_NAME']}/essence_db/users/logout.php' class='btn btn-outline-danger'>Logout</a>";
+            echo "<a href='/essence_db/users/logout.php' class='btn btn-outline-danger'>Logout</a>";
           }
           ?>
         </div>

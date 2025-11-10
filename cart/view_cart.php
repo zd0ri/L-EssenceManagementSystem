@@ -7,6 +7,17 @@ include('../includes/config.php');
 // print_r($_SESSION);
 ?>
 
+<?php
+// DEBUG: log session/cart when viewing cart (temporary)
+@file_put_contents(__DIR__ . '/cart_debug.log', json_encode([
+    'time' => date('c'),
+    'event' => 'view_cart',
+    'session_cart' => isset($_SESSION['cart_products']) ? $_SESSION['cart_products'] : null,
+    'cookie' => isset($_COOKIE) ? $_COOKIE : null,
+    'referer' => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : null
+]) . PHP_EOL, FILE_APPEND | LOCK_EX);
+?>
+
 <h1 align="center">View Cart</h1>
 <div class="cart-view-table-back">
     <form method="POST" action="cart_update.php">

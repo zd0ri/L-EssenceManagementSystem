@@ -18,7 +18,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $size = trim($_POST['size']);
     $price = trim($_POST['price']);
     $desc = trim($_POST['description']);
-    $qty = $_POST['quantity'];
+    $rawQty = isset($_POST['quantity']) ? trim($_POST['quantity']) : '';
+    if ($rawQty === '') {
+        // empty input -> default to 1 so new products are visible on public listing
+        $qty = 1;
+    } elseif (is_numeric($rawQty) && (int)$rawQty >= 0) {
+        // respect admin-provided quantity including 0 (out of stock) or any positive integer
+        $qty = (int)$rawQty;
+    } else {
+        $_SESSION['qtyError'] = 'Invalid quantity. Use 0 or a positive integer.';
+        header("Location: create.php");
+        exit();
+    }
 
     // --- Validation ---
     if (empty($brand)) {
@@ -33,12 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
-    // Allow 0 (zero) quantity. Note: PHP considers the string '0' as empty(), so check explicitly.
-    if ($qty === '' || !is_numeric($qty) || (int)$qty < 0) {
-        $_SESSION['qtyError'] = 'Invalid quantity. Use 0 or a positive integer.';
-        header("Location: create.php");
-        exit();
-    }
+    // quantity is now normalized to an integer >= 1
 
     // --- Handle image upload ---
     $target = null;
@@ -72,10 +78,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // --- Insert into inventory table ---
     $updated_by = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'NULL';
-    $q_inventory = "
-        INSERT INTO inventory (product_id, quantity, restock_date, updated_by)
-        VALUES ('{$product_id}', '{$qty}', NOW(), {$updated_by})
-    ";
+    // Use integer values in inventory insert to avoid quotes around numbers
+    $q_inventory = "INSERT INTO inventory (product_id, quantity, restock_date, updated_by) VALUES ({$product_id}, {$qty}, NOW(), {$updated_by})";
 
     $result2 = mysqli_query($conn, $q_inventory);
 
@@ -135,10 +139,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             mysqli_query($conn, "INSERT INTO product_images (product_id, path) VALUES ({$product_id}, '{$relEsc}')");
         }
 
+        // clear temporary session form values
+        unset($_SESSION['brand'], $_SESSION['scent'], $_SESSION['size'], $_SESSION['price'], $_SESSION['desc'], $_SESSION['qty']);
+
+        // Redirect to admin items list so admin can continue managing products
         header("Location: index.php");
         exit();
     } else {
         echo "Inventory insert error: " . mysqli_error($conn);
     }
+
 }
 ?>

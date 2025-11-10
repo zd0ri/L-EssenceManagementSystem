@@ -47,6 +47,17 @@ if (post('type') === 'add') {
             $_SESSION['cart_products'][$product_id] = $new_product;
             // flash message (no direct 'View Cart' link as requested)
             $_SESSION['success'] = 'Item added to cart.';
+
+            // DEBUG: append cart write to log for troubleshooting session persistence
+            // (temporary) - writes JSON lines to cart_debug.log in the cart folder
+            @file_put_contents(__DIR__ . '/cart_debug.log', json_encode([
+                'time' => date('c'),
+                'event' => 'add',
+                'product_id' => $product_id,
+                'post' => $_POST,
+                'session_cart' => isset($_SESSION['cart_products']) ? $_SESSION['cart_products'] : null,
+                'cookie' => isset($_COOKIE) ? $_COOKIE : null
+            ]) . PHP_EOL, FILE_APPEND | LOCK_EX);
         }
     }
 }
@@ -60,6 +71,13 @@ if (isset($_POST['product_qty']) && is_array($_POST['product_qty'])) {
         }
     }
     $_SESSION['success'] = 'Cart updated.';
+    @file_put_contents(__DIR__ . '/cart_debug.log', json_encode([
+        'time' => date('c'),
+        'event' => 'update',
+        'post' => $_POST,
+        'session_cart' => isset($_SESSION['cart_products']) ? $_SESSION['cart_products'] : null,
+        'cookie' => isset($_COOKIE) ? $_COOKIE : null
+    ]) . PHP_EOL, FILE_APPEND | LOCK_EX);
 }
 
 if (isset($_POST['remove_code']) && is_array($_POST['remove_code'])) {
@@ -70,6 +88,13 @@ if (isset($_POST['remove_code']) && is_array($_POST['remove_code'])) {
         }
     }
     $_SESSION['success'] = 'Selected items removed from cart.';
+    @file_put_contents(__DIR__ . '/cart_debug.log', json_encode([
+        'time' => date('c'),
+        'event' => 'remove',
+        'post' => $_POST,
+        'session_cart' => isset($_SESSION['cart_products']) ? $_SESSION['cart_products'] : null,
+        'cookie' => isset($_COOKIE) ? $_COOKIE : null
+    ]) . PHP_EOL, FILE_APPEND | LOCK_EX);
 }
 
 // determine safe redirect: prefer referrer if within project, otherwise index
