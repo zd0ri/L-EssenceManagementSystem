@@ -57,12 +57,10 @@ $itemCount = mysqli_num_rows($result);
                 </td>
                 <td>
                     <?php if ($row['user_id'] != $_SESSION['user_id']): ?>
-                        <a class="btn btn-sm btn-<?= $row['status'] === 'active' ? 'warning' : 'success' ?>" href="user_toggle.php?id=<?= (int)$row['user_id'] ?>">
+                        <!-- Quick toggle button for convenience (calls user_toggle.php). Status form still available. -->
+                        <a class="btn btn-sm btn-<?= $row['status'] === 'active' ? 'warning' : 'success' ?> me-1" href="user_toggle.php?id=<?= (int)$row['user_id'] ?>">
                             <?= $row['status'] === 'active' ? 'Deactivate' : 'Activate' ?>
                         </a>
-                        <?php if ($row['status'] === 'active'): ?>
-                            <a class="btn btn-sm btn-secondary" href="impersonate.php?id=<?= (int)$row['user_id'] ?>">Impersonate</a>
-                        <?php endif; ?>
                         <a class="btn btn-sm btn-danger" href="user_delete.php?id=<?= (int)$row['user_id'] ?>" onclick="return confirm('Delete this user?');">Delete</a>
                     <?php else: ?>
                         <span class="text-muted">(you)</span>

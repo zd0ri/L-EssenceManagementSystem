@@ -49,7 +49,7 @@ include('../includes/config.php');
                     <td colspan="5"><span style="float:right;text-align: right;">Amount Payable : <?php echo sprintf("%01.2f", $total); ?></span></td>
                 </tr>
                 <tr>
-                    <td colspan="5"><a href="index.php" class="button">Add More Items</a>
+                    <td colspan="5"><a href="../index.php" class="button">Add More Items</a>
                         <button type="submit">Update</button>
                     <td colspan="5"><a href="checkout.php" class="button">checkout</a></td>
                 </tr>

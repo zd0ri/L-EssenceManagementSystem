@@ -88,3 +88,4 @@
       </div>
     </div>
   </nav>
+  <?php include_once __DIR__ . '/alert.php'; ?>
