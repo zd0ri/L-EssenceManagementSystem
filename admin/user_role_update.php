@@ -14,11 +14,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $user_id = isset($_POST['user_id']) ? (int)$_POST['user_id'] : 0;
-$role = isset($_POST['role']) ? mysqli_real_escape_string($conn, $_POST['role']) : '';
+$role = isset($_POST['role']) ? trim($_POST['role']) : '';
 
-if ($user_id <= 0 || !in_array($role, ['admin','customer','inventory_manager','finance_manager'])) {
+// only allow 'admin' or 'customer'
+$allowedRoles = ['admin', 'customer'];
+if ($user_id <= 0 || !in_array($role, $allowedRoles, true)) {
     $_SESSION['message'] = 'Invalid input.';
-    header('Location: users.php');
+    header('Location: users_manage.php');
     exit();
 }
 
@@ -47,10 +49,19 @@ if ($role !== 'admin') {
     }
 }
 
-if (mysqli_query($conn, "UPDATE users SET role = '{$role}' WHERE user_id = {$user_id}")) {
-    $_SESSION['message'] = 'User role updated.';
+// perform update using prepared statement
+$updateSql = "UPDATE users SET role = ? WHERE user_id = ?";
+$stmt = mysqli_prepare($conn, $updateSql);
+if ($stmt) {
+    mysqli_stmt_bind_param($stmt, 'si', $role, $user_id);
+    $ok = mysqli_stmt_execute($stmt);
+    if ($ok) {
+        $_SESSION['message'] = 'User role updated.';
+    } else {
+        $_SESSION['message'] = 'Failed to update role: ' . mysqli_stmt_error($stmt);
+    }
 } else {
-    $_SESSION['message'] = 'Failed to update role: ' . mysqli_error($conn);
+    $_SESSION['message'] = 'Failed to prepare update statement.';
 }
 
 header('Location: users_manage.php');

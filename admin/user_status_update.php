@@ -9,33 +9,42 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
     exit();
 }
 
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    $_SESSION['message'] = 'Invalid user id.';
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: users_manage.php');
     exit();
 }
 
-$id = (int)$_GET['id'];
+$user_id = isset($_POST['user_id']) ? (int)$_POST['user_id'] : 0;
+$status = isset($_POST['status']) ? trim($_POST['status']) : '';
 
-// prevent admin from toggling themselves
-if ($id === (int)$_SESSION['user_id']) {
-    $_SESSION['message'] = 'You cannot change your own status.';
-    header('Location: users.php');
+if ($user_id <= 0 || !in_array($status, ['active','inactive'], true)) {
+    $_SESSION['message'] = 'Invalid input.';
+    header('Location: users_manage.php');
     exit();
 }
 
-$q = mysqli_query($conn, "SELECT status FROM users WHERE user_id = {$id} LIMIT 1");
-if (!$q || mysqli_num_rows($q) === 0) {
+// prevent admin from changing their own status
+if ($user_id === (int)$_SESSION['user_id']) {
+    $_SESSION['message'] = 'You cannot change your own status.';
+    header('Location: users_manage.php');
+    exit();
+}
+
+// check user exists and get role
+$q = mysqli_prepare($conn, "SELECT role, status FROM users WHERE user_id = ? LIMIT 1");
+mysqli_stmt_bind_param($q, 'i', $user_id);
+mysqli_stmt_execute($q);
+mysqli_stmt_store_result($q);
+if (mysqli_stmt_num_rows($q) === 0) {
     $_SESSION['message'] = 'User not found.';
     header('Location: users_manage.php');
     exit();
 }
-$r = mysqli_fetch_assoc($q);
-$new = ($r['status'] === 'active') ? 'inactive' : 'active';
+mysqli_stmt_bind_result($q, $role, $curStatus);
+mysqli_stmt_fetch($q);
+
 // If deactivating an admin, ensure at least one active admin remains
-$roleQ = mysqli_query($conn, "SELECT role FROM users WHERE user_id = {$id} LIMIT 1");
-$roleRow = $roleQ ? mysqli_fetch_assoc($roleQ) : null;
-if ($new === 'inactive' && $roleRow && ($roleRow['role'] === 'admin')) {
+if ($status === 'inactive' && $role === 'admin') {
     $adm = mysqli_query($conn, "SELECT COUNT(*) as cnt FROM users WHERE role = 'admin' AND status = 'active'");
     $admRow = $adm ? mysqli_fetch_assoc($adm) : null;
     if ($admRow && (int)$admRow['cnt'] <= 1) {
@@ -45,10 +54,18 @@ if ($new === 'inactive' && $roleRow && ($roleRow['role'] === 'admin')) {
     }
 }
 
+// no-op if status unchanged
+if ($curStatus === $status) {
+    $_SESSION['message'] = 'No change.';
+    header('Location: users_manage.php');
+    exit();
+}
+
+// update using prepared statement
 $updateSql = "UPDATE users SET status = ? WHERE user_id = ?";
 $stmt = mysqli_prepare($conn, $updateSql);
 if ($stmt) {
-    mysqli_stmt_bind_param($stmt, 'si', $new, $id);
+    mysqli_stmt_bind_param($stmt, 'si', $status, $user_id);
     $ok = mysqli_stmt_execute($stmt);
     if ($ok) {
         $_SESSION['message'] = 'User status updated.';
@@ -58,6 +75,7 @@ if ($stmt) {
 } else {
     $_SESSION['message'] = 'Failed to prepare update.';
 }
+
 header('Location: users_manage.php');
 exit();
 
