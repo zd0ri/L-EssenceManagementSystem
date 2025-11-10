@@ -58,15 +58,6 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
         </div>
     </div>
 
-    <div class="mt-4">
-        <h5>Quick Notes</h5>
-        <ul>
-            <li>Items page supports multiple images per product. Use <code>item/edit.php</code> to add or replace images.</li>
-            <li>Users management includes role update and activation toggles. Don't remove the last active admin.</li>
-            <li>To revert impersonation after using Impersonate, log out and sign in again as admin. (I can add a "Revert" button if you want.)</li>
-        </ul>
-    </div>
-
 </div>
 
 <?php include('../includes/footer.php'); ?>
