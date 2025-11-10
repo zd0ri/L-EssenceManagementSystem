@@ -62,7 +62,13 @@ include('../includes/config.php');
                 <tr>
                     <td colspan="5"><a href="../index.php" class="button">Add More Items</a>
                         <button type="submit">Update</button>
-                    <td colspan="5"><a href="checkout.php" class="button">checkout</a></td>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="5" class="text-end">
+                        <!-- Link to checkout form where user selects payment/delivery options -->
+                        <a href="checkout_form.php" class="btn btn-success">Checkout</a>
+                    </td>
                 </tr>
             </tbody>
         </table>

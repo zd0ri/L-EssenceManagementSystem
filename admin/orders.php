@@ -12,9 +12,10 @@ include('../includes/config.php');
 //order details
 
 
-$sql = "SELECT order_id, total_amount AS total, status FROM orders ORDER BY order_date DESC";
+// fetch orders with customer info
+$sql = "SELECT o.order_id, o.total_amount AS total, o.status, o.payment_status, c.fullname, c.email, o.order_date FROM orders o LEFT JOIN customers c ON o.customer_id = c.customer_id ORDER BY o.order_date DESC";
 $result = mysqli_query($conn, $sql);
-$itemCount = mysqli_num_rows($result);
+$itemCount = $result ? mysqli_num_rows($result) : 0;
 
 ?>
 <h2>number of items <?= $itemCount ?> </h2>
@@ -23,25 +24,32 @@ $itemCount = mysqli_num_rows($result);
     <?php
     while ($row = mysqli_fetch_assoc($result)) {
         echo "<tr>";
-
         echo "<td>{$row['order_id']}</td>";
-        echo "<td>{$row['total']}</td>";
-        if($row['status'] === 'completed') {
-            echo "<td style='color: green'>{$row['status']}</td>";
-        }
-        else {
-            echo "<td style='color: red'>{$row['status']}</td>";
+        echo "<td>₱" . number_format((float)$row['total'],2) . "</td>";
+        echo "<td>" . htmlspecialchars($row['fullname'] ?? 'Guest') . "</td>";
+        echo "<td>" . htmlspecialchars($row['email'] ?? '') . "</td>";
+        echo "<td>" . htmlspecialchars($row['payment_status']) . "</td>";
+        // status with color
+        $color = $row['status'] === 'completed' ? 'green' : 'red';
+        echo "<td style='color: {$color}'>" . htmlspecialchars($row['status']) . "</td>";
+        echo "<td>" . htmlspecialchars($row['order_date']) . "</td>";
 
+        // actions: view details and change status (form)
+        echo "<td>";
+        echo "<a href='orderDetails.php?id={$row['order_id']}' class='btn btn-sm btn-outline-primary me-2'>View</a>";
+        echo "<form method='POST' action='update_order_status.php' style='display:inline-block'>";
+        echo "<input type='hidden' name='order_id' value='" . (int)$row['order_id'] . "' />";
+        echo "<select name='status' class='form-select form-select-sm d-inline-block' style='width:140px; display:inline-block; margin-right:6px;'>";
+        $statuses = ['pending','processing','shipped','completed','cancelled'];
+        foreach ($statuses as $s) {
+            $sel = $s === $row['status'] ? 'selected' : '';
+            echo "<option value='" . htmlspecialchars($s) . "' {$sel}>" . ucfirst($s) . "</option>";
         }
-        if($row['status'] === 'completed') {
-            echo "<td><i class='fa-regular fa-eye' style='color: gray'></i></td>";
+        echo "</select>";
+        echo "<button type='submit' class='btn btn-sm btn-success'>Save</button>";
+        echo "</form>";
+        echo "</td>";
         echo "</tr>";
-        }
-
-        else {
-            echo "<td><a href='orderDetails.php?id={$row['order_id']}'><i class='fa-regular fa-eye' style='color: blue'></i></a></td>";
-            echo "</tr>";
-        }
 
 
         

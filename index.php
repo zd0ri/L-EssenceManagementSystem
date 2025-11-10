@@ -121,7 +121,10 @@ include __DIR__ . '/includes/header.php';
               <input type="hidden" name="item_id" value="<?php echo $row['productId']; ?>">
               <input type="hidden" name="type" value="add">
               <input type="number" name="item_qty" value="1" min="1" max="<?php echo $maxQty; ?>" class="form-control mb-2">
-              <button type="submit" class="btn btn-dark w-100">Add to Cart</button>
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-dark">Add to Cart</button>
+                <a href="/essence_db/product.php?id=<?php echo $row['productId']; ?>" class="btn btn-outline-secondary">View</a>
+              </div>
             </form>
           </div>
         </div>
