@@ -1,14 +1,9 @@
 <?php
 session_start();
+// require admin before any output
+require_once(__DIR__ . '/../includes/admin_auth.php');
 include("../includes/config.php");
 include("../includes/header.php");
-
-// only admin
-if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
-    $_SESSION['message'] = 'Access denied.';
-    header('Location: ../users/login.php');
-    exit();
-}
 
 $sql = "SELECT user_id, username, email, role, status, date_created FROM users ORDER BY date_created DESC";
 $result = mysqli_query($conn, $sql);

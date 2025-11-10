@@ -1,15 +1,11 @@
 <?php
 session_start();
+// require login before sending any output
+require_once(__DIR__ . '/../includes/auth.php');
 include("../includes/header.php");
 include("../includes/config.php");
-
-// ensure user logged in
-$current_user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
-if (!$current_user_id) {
-    $_SESSION['message'] = 'You must be logged in to edit your profile.';
-    header('Location: ../users/login.php');
-    exit();
-}
+// after auth, we have a user id
+$current_user_id = (int)$_SESSION['user_id'];
 
 // Handle POST (single form: profile fields + optional image)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

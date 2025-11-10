@@ -1,5 +1,7 @@
 <?php
 session_start();
+// require admin before output
+require_once(__DIR__ . '/../includes/admin_auth.php');
 include('../includes/header.php');
 include('../includes/config.php');
 //CREATE VIEW  salesPerOrder as SELECT o.orderinfo_id, SUM(i.sell_price * ol.quantity), o.status FROM orderinfo o INNER JOIN orderline ol using (orderinfo_id) INNER JOIN item i USING (item_id)

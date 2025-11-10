@@ -1,5 +1,7 @@
 <?php
 session_start();
+// require admin before any output
+require_once(__DIR__ . '/../includes/admin_auth.php');
 include('../includes/config.php');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

@@ -4,28 +4,48 @@ session_start();
 include("../includes/header.php");
 include("../includes/config.php");
 if (isset($_POST['submit'])) {
-  
-    $email = trim($_POST['email']);
-    $pass = sha1(trim($_POST['password']));
-    // match schema: users.user_id is the PK
-    $sql = "SELECT user_id, email, role FROM users WHERE email=? AND password=? LIMIT 1";
-    $stmt = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt, 'ss', $email, $pass);
-    mysqli_stmt_execute($stmt);
-    // $result = mysqli_query($conn, $sql);
-    // var_dump($result);
-    mysqli_stmt_store_result($stmt);
-    mysqli_stmt_bind_result($stmt, $user_id, $email, $role);
-    if (mysqli_stmt_num_rows($stmt) === 1) {
-        mysqli_stmt_fetch($stmt);
-       
-        $_SESSION['email'] = $email;
-        // normalize session key to `user_id`
-        $_SESSION['user_id'] = $user_id;
-        $_SESSION['role'] = $role;
-        header("Location: ../index.php");
+    // server-side validation (no HTML5 reliance)
+    $email_raw = isset($_POST['email']) ? trim($_POST['email']) : '';
+    $password_raw = isset($_POST['password']) ? trim($_POST['password']) : '';
+    $errors = [];
+
+    if ($email_raw === '') {
+        $errors[] = 'Email is required';
+    } elseif (!filter_var($email_raw, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = 'Invalid email format';
+    }
+
+    if ($password_raw === '') {
+        $errors[] = 'Password is required';
+    }
+
+    if (!empty($errors)) {
+        $_SESSION['message'] = implode('<br>', $errors);
     } else {
-        $_SESSION['message'] = 'wrong email or password';
+        $email = strtolower($email_raw);
+        $pass = sha1($password_raw);
+
+        // match schema: users.user_id is the PK
+        $sql = "SELECT user_id, email, role FROM users WHERE email=? AND password=? LIMIT 1";
+        $stmt = mysqli_prepare($conn, $sql);
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, 'ss', $email, $pass);
+            mysqli_stmt_execute($stmt);
+            mysqli_stmt_store_result($stmt);
+            mysqli_stmt_bind_result($stmt, $user_id, $db_email, $role);
+            if (mysqli_stmt_num_rows($stmt) === 1) {
+                mysqli_stmt_fetch($stmt);
+                $_SESSION['email'] = $db_email;
+                $_SESSION['user_id'] = $user_id;
+                $_SESSION['role'] = $role;
+                header("Location: ../index.php");
+                exit();
+            } else {
+                $_SESSION['message'] = 'Wrong email or password';
+            }
+        } else {
+            $_SESSION['message'] = 'An internal error occurred';
+        }
     }
 }
 
@@ -33,9 +53,12 @@ if (isset($_POST['submit'])) {
 <div class="row col-md-8 mx-auto ">
     <?php include("../includes/alert.php"); ?>
     <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST">
-        <!-- Email input -->
+        <!-- Email input (use text to avoid HTML5 validation) -->
         <div class="form-outline mb-4">
-            <input type="email" id="form2Example1" class="form-control" name="email" />
+            <input type="text" id="form2Example1" class="form-control" name="email" value="<?php echo isset(
+                
+                
+                $_POST['email']) ? htmlspecialchars($_POST['email']) : (isset($_SESSION['email']) ? htmlspecialchars($_SESSION['email']) : ''); ?>" />
             <label class="form-label" for="form2Example1">Email address</label>
         </div>
 
