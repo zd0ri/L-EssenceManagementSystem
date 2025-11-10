@@ -45,8 +45,8 @@ if (post('type') === 'add') {
 
             // replace any existing entry for this product
             $_SESSION['cart_products'][$product_id] = $new_product;
-            // flash message with link to view cart
-            $_SESSION['success'] = 'Item added to cart. <a href="../cart/view_cart.php">View Cart</a>';
+            // flash message (no direct 'View Cart' link as requested)
+            $_SESSION['success'] = 'Item added to cart.';
         }
     }
 }

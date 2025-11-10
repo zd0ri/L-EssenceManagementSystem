@@ -22,10 +22,10 @@ include('../includes/config.php');
             </thead>
             <tbody>
                 <?php
+                $total = 0; //set initial total value (always define to avoid undefined warnings)
+                $b = 0; //var for zebra stripe table
                 if (isset($_SESSION["cart_products"])) //check session var
                 {
-                    $total = 0; //set initial total value
-                    $b = 0; //var for zebra stripe table 
                     foreach ($_SESSION["cart_products"] as $cart_itm) {
                         //set variables to use in content below
                         $product_name = $cart_itm["item_name"];
