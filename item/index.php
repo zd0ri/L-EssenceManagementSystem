@@ -1,5 +1,7 @@
 <?php
 session_start();
+// require admin before output to ensure redirects work
+require_once(__DIR__ . '/../includes/admin_auth.php');
 include('../includes/adminHeader.php');
 include('../includes/config.php');
 print_r($_SESSION);
@@ -30,10 +32,7 @@ $itemCount = mysqli_num_rows($result);
 <body>
     <div class="d-flex justify-content-between align-items-center mb-3">
         <a href="create.php" class="btn btn-primary btn-lg">Add Item</a>
-        <form class="d-flex" method="get" action="index.php">
-            <input class="form-control me-2" type="search" name="search" placeholder="Search items" value="<?php echo htmlspecialchars(isset($_GET['search']) ? $_GET['search'] : ''); ?>" />
-            <button class="btn btn-outline-success" type="submit">Search</button>
-        </form>
+        <!-- Search is provided by the admin header (single search) -->
     </div>
     <h2>Number of items: <?=$itemCount ?> </h2>
     <table class="table table-striped table-bordered">

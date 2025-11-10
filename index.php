@@ -1,120 +1,69 @@
 <?php
 session_start();
-include('./includes/header.php');
-include('./includes/config.php');
+require_once __DIR__ . '/includes/config.php';
+include __DIR__ . '/includes/header.php';
 ?>
 
-<!-- Hero Section -->
-<section class="hero text-center py-5">
-  <div class="container">
-    <h1 class="display-4 fw-bold" style="font-family: 'Playfair Display', serif;">
-      Smell is a word, Perfume is <span style="font-style: italic;">literature</span>
-    </h1>
-    <p class="lead mt-3">Discover the beauty of fragrance with our collection of premium perfumes to enrich your everyday smell.</p>
-    <a href="#popular-products" class="btn btn-dark mt-4 px-4 py-2">Shop Now</a>
-  </div>
-</section>
-
-<!-- Brand Logos -->
-<section class="brands text-center py-3">
-  <div class="container">
-    <div class="d-flex justify-content-center flex-wrap gap-4">
-      <h5>Dior</h5>
-      <h5>TOM FORD</h5>
-      <h5>Calvin Klein</h5>
-      <h5>CLINIQUE</h5>
-      <h5>D&G</h5>
-    </div>
-  </div>
-</section>
-
-<!-- Cart Display -->
-<?php
-if (isset($_SESSION["cart_products"]) && count($_SESSION["cart_products"]) > 0) {
-    echo '<div class="container my-5">';
-    echo '<h3 class="mb-4 text-center">Your Shopping Cart</h3>';
-    echo '<form method="POST" action="./cart/cart_update.php">';
-    echo '<table class="table table-bordered">';
-    echo '<thead class="table-light"><tr><th>Quantity</th><th>Product</th><th>Remove</th></tr></thead><tbody>';
-
-    $total = 0;
-    foreach ($_SESSION["cart_products"] as $cart_itm) {
-        $product_name = $cart_itm["item_name"];
-        $product_qty = $cart_itm["item_qty"];
-        $product_price = $cart_itm["item_price"];
-        $product_code = $cart_itm["item_id"];
-        $subtotal = ($product_price * $product_qty);
-        $total += $subtotal;
-
-        echo "<tr>
-                <td><input type='number' name='product_qty[$product_code]' value='$product_qty' min='1' class='form-control' /></td>
-                <td>$product_name</td>
-                <td><input type='checkbox' name='remove_code[]' value='$product_code' /> Remove</td>
-              </tr>";
-    }
-
-    echo '</tbody></table>';
-    echo "<div class='text-center mb-3'>
-            <button type='submit' class='btn btn-outline-dark me-2'>Update</button>
-            <a href='./cart/checkout.php' class='btn btn-dark'>Checkout</a>
-          </div>";
-    echo '</form></div>';
-}
-?>
+<?php include_once __DIR__ . '/includes/alert.php'; ?>
 
 <!-- Product Display -->
 <section id="popular-products" class="py-5">
   <div class="container">
     <h2 class="text-center fw-bold mb-4">Popular Products</h2>
-    <div class="row g-4 justify-content-center">
+
+    <!-- Search is provided in the header (single global search form) -->
 
     <?php
-    $sql = "
-        SELECT 
-            p.product_id AS productId,
-            p.brand_name,
-            p.description,
-            p.price,
-            p.image,
-            i.quantity
-        FROM products p
-        INNER JOIN inventory i ON p.product_id = i.product_id
-        WHERE i.quantity > 0 AND p.status = 'available'
-        ORDER BY p.product_id ASC
-    ";
+    // prepare search filter
+    $search = '';
+    $whereExtra = '';
+    if (isset($_GET['search']) && trim($_GET['search']) !== '') {
+      $search = trim($_GET['search']);
+      $searchEsc = mysqli_real_escape_string($conn, strtolower($search));
+      $whereExtra = " AND (LOWER(p.brand_name) LIKE '%{$searchEsc}%' OR LOWER(p.scent_type) LIKE '%{$searchEsc}%' OR LOWER(p.description) LIKE '%{$searchEsc}%')";
+      echo '<div class="text-center mb-3">Showing results for <strong>' . htmlspecialchars($search) . '</strong></div>';
+    }
+
+    $sql = "SELECT p.product_id AS productId, p.brand_name, p.description, p.price, p.image, i.quantity
+            FROM products p
+            INNER JOIN inventory i ON p.product_id = i.product_id
+            WHERE i.quantity > 0 AND p.status = 'available' " . $whereExtra . " ORDER BY p.product_id ASC";
 
     $results = mysqli_query($conn, $sql);
+    ?>
 
-    if ($results) {
-        while ($row = mysqli_fetch_assoc($results)) {
-            $desc = htmlspecialchars($row['description']);
-            $brand = htmlspecialchars($row['brand_name']);
-            $price = number_format($row['price'], 2);
-      $rawImage = $row['image'];
-      $maxQty = (int)$row['quantity'];
-      // determine display images: prefer product_images table (can be multiple)
-      $imgs = [];
-      $qpi = mysqli_query($conn, "SELECT path FROM product_images WHERE product_id = {$row['productId']} ORDER BY product_image_id ASC");
-      if ($qpi && mysqli_num_rows($qpi) > 0) {
-        while ($rpi = mysqli_fetch_assoc($qpi)) {
-          $imgs[] = $rpi['path'];
+    <div class="row g-4 justify-content-center">
+    <?php
+    if ($results && mysqli_num_rows($results) > 0) {
+      while ($row = mysqli_fetch_assoc($results)) {
+        $desc = htmlspecialchars($row['description']);
+        $brand = htmlspecialchars($row['brand_name']);
+        $price = number_format($row['price'], 2);
+        $rawImage = $row['image'];
+        $maxQty = (int)$row['quantity'];
+
+        // collect images for this product
+        $imgs = [];
+        $qpi = mysqli_query($conn, "SELECT path FROM product_images WHERE product_id = {$row['productId']} ORDER BY product_image_id ASC");
+        if ($qpi && mysqli_num_rows($qpi) > 0) {
+          while ($rpi = mysqli_fetch_assoc($qpi)) {
+            $imgs[] = $rpi['path'];
+          }
         }
-      }
-      // fallback to legacy single image
-      if (empty($imgs) && !empty($rawImage)) {
-        $imgs[] = $rawImage;
-      }
+        // fallback to legacy single image
+        if (empty($imgs) && !empty($rawImage)) {
+          $imgs[] = $rawImage;
+        }
+
+        // build base url
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
     ?>
 
       <div class="col-md-3 col-sm-6">
         <div class="card border-0 shadow-sm text-center p-3">
           <?php
-          // build base url and check files correctly (filesystem path relative to this file)
-          $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-          $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
-
           if (count($imgs) === 0) {
-            // no images
             echo '<div style="height:250px; background:#f0f0f0; display:flex;align-items:center;justify-content:center;color:#888">No image</div>';
           } elseif (count($imgs) === 1) {
             $p = str_replace('\\', '/', $imgs[0]);
@@ -123,7 +72,6 @@ if (isset($_SESSION["cart_products"]) && count($_SESSION["cart_products"]) > 0) 
               $fileExists = true;
             } else {
               $imgUrl = $baseUrl . ltrim($p, '/');
-              // file path should be relative to the project root (this file is in essence_db)
               $fileExists = file_exists(__DIR__ . '/' . ltrim($p, '/'));
             }
             if (!empty($fileExists)) {
@@ -180,11 +128,13 @@ if (isset($_SESSION["cart_products"]) && count($_SESSION["cart_products"]) > 0) 
       </div>
 
     <?php
-        }
+      }
+    } else {
+      echo '<div class="col-12 text-center">No products found.</div>';
     }
     ?>
     </div>
   </div>
 </section>
 
-<?php include('./includes/footer.php'); ?>
+<?php include_once __DIR__ . '/includes/footer.php'; ?>

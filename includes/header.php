@@ -59,13 +59,13 @@
           </li>
         </ul>
         
-        <!-- Search bar -->
-<form action="search.php" method="GET" class="d-flex me-3">
-  <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="search">
-  <button class="btn btn-outline-success" type="submit">
-    <i class="fa-solid fa-magnifying-glass"></i>
-  </button>
-</form>
+        <!-- Search bar (single across site) -->
+        <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="GET" class="d-flex me-3">
+          <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="search" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+          <button class="btn btn-outline-success" type="submit">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+        </form>
 
         <!-- Icons section -->
         <div class="d-flex align-items-center">

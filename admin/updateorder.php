@@ -1,5 +1,7 @@
 <?php
 session_start();
+// require admin before output
+require_once(__DIR__ . '/../includes/admin_auth.php');
 include("../includes/config.php");
 include("../includes/header.php");
 

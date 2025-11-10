@@ -1,5 +1,7 @@
 <?php
 session_start();
+// require login before any output
+require_once(__DIR__ . '/../includes/auth.php');
 include('../includes/header.php');
 include('../includes/config.php');
 
