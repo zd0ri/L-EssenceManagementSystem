@@ -1,27 +1,26 @@
-<?php
+<?php 
 session_start();
 require_once __DIR__ . '/includes/config.php';
 include __DIR__ . '/includes/header.php';
 ?>
 
+
+<!-- page uses global theme from includes/style/style.css -->
+
 <?php include_once __DIR__ . '/includes/alert.php'; ?>
 
-<!-- Product Display -->
 <section id="popular-products" class="py-5">
-  <div class="container">
-    <h2 class="text-center fw-bold mb-4">Popular Products</h2>
-
-    <!-- Search is provided in the header (single global search form) -->
+  <div class="container text-center">
+    <h2 class="mb-5">Popular Products</h2>
 
     <?php
-    // prepare search filter
     $search = '';
     $whereExtra = '';
     if (isset($_GET['search']) && trim($_GET['search']) !== '') {
       $search = trim($_GET['search']);
       $searchEsc = mysqli_real_escape_string($conn, strtolower($search));
       $whereExtra = " AND (LOWER(p.brand_name) LIKE '%{$searchEsc}%' OR LOWER(p.scent_type) LIKE '%{$searchEsc}%' OR LOWER(p.description) LIKE '%{$searchEsc}%')";
-      echo '<div class="text-center mb-3">Showing results for <strong>' . htmlspecialchars($search) . '</strong></div>';
+      echo '<div class="search-result">Showing results for <strong>' . htmlspecialchars($search) . '</strong></div>';
     }
 
     $sql = "SELECT p.product_id AS productId, p.brand_name, p.description, p.price, p.image, i.quantity
@@ -42,7 +41,6 @@ include __DIR__ . '/includes/header.php';
         $rawImage = $row['image'];
         $maxQty = (int)$row['quantity'];
 
-        // collect images for this product
         $imgs = [];
         $qpi = mysqli_query($conn, "SELECT path FROM product_images WHERE product_id = {$row['productId']} ORDER BY product_image_id ASC");
         if ($qpi && mysqli_num_rows($qpi) > 0) {
@@ -50,70 +48,42 @@ include __DIR__ . '/includes/header.php';
             $imgs[] = $rpi['path'];
           }
         }
-        // fallback to legacy single image
         if (empty($imgs) && !empty($rawImage)) {
           $imgs[] = $rawImage;
         }
 
-        // build base url
         $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
     ?>
 
-      <div class="col-md-3 col-sm-6">
-        <div class="card border-0 shadow-sm text-center p-3">
+      <div class="col-lg-3 col-md-4 col-sm-6">
+        <div class="card shadow-sm text-center p-2 product-card">
           <?php
           if (count($imgs) === 0) {
-            echo '<div style="height:250px; background:#f0f0f0; display:flex;align-items:center;justify-content:center;color:#888">No image</div>';
+            echo '<div class="card-img-top missing">No image</div>';
           } elseif (count($imgs) === 1) {
             $p = str_replace('\\', '/', $imgs[0]);
-            if (preg_match('#^https?://#i', $p)) {
-              $imgUrl = $p;
-              $fileExists = true;
-            } else {
-              $imgUrl = $baseUrl . ltrim($p, '/');
-              $fileExists = file_exists(__DIR__ . '/' . ltrim($p, '/'));
-            }
-            if (!empty($fileExists)) {
-              echo '<img src="' . htmlspecialchars($imgUrl) . '" class="card-img-top img-fluid" style="height:250px; object-fit:cover;" alt="' . htmlspecialchars($brand) . '">';
-            } else {
-              echo '<div style="height:250px; background:#fff3cd; display:flex;align-items:center;justify-content:center;color:#856404">Missing image</div>';
-            }
+            $imgUrl = preg_match('#^https?://#i', $p) ? $p : $baseUrl . ltrim($p, '/');
+            echo '<img src="' . htmlspecialchars($imgUrl) . '" class="card-img-top img-fluid" alt="' . htmlspecialchars($brand) . '">';
           } else {
-            // multiple images: render a bootstrap carousel
             $carouselId = 'homeCarousel_' . $row['productId'];
             echo '<div id="' . $carouselId . '" class="carousel slide" data-bs-ride="carousel">';
-            echo '<div class="carousel-inner" style="height:250px;">';
+            echo '<div class="carousel-inner">';
             foreach ($imgs as $i => $pRaw) {
               $p = str_replace('\\', '/', $pRaw);
-              if (preg_match('#^https?://#i', $p)) {
-                $imgUrl = $p;
-                $fileExists = true;
-              } else {
-                $imgUrl = $baseUrl . ltrim($p, '/');
-                $fileExists = file_exists(__DIR__ . '/' . ltrim($p, '/'));
-              }
+              $imgUrl = preg_match('#^https?://#i', $p) ? $p : $baseUrl . ltrim($p, '/');
               $active = $i === 0 ? ' active' : '';
               echo '<div class="carousel-item' . $active . '">';
-              if ($fileExists) {
-                echo '<img src="' . htmlspecialchars($imgUrl) . '" class="d-block w-100" style="height:250px; object-fit:cover;" alt="' . htmlspecialchars($brand) . '">';
-              } else {
-                echo '<div style="height:250px; background:#f8d7da; display:flex;align-items:center;justify-content:center;color:#842029">Missing image</div>';
-              }
+              echo '<img src="' . htmlspecialchars($imgUrl) . '" class="d-block w-100" alt="' . htmlspecialchars($brand) . '">';
               echo '</div>';
             }
             echo '</div>';
-            echo '<button class="carousel-control-prev" type="button" data-bs-target="#' . $carouselId . '" data-bs-slide="prev">';
-            echo '<span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Previous</span>';
-            echo '</button>';
-            echo '<button class="carousel-control-next" type="button" data-bs-target="#' . $carouselId . '" data-bs-slide="next">';
-            echo '<span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Next</span>';
-            echo '</button>';
             echo '</div>';
           }
           ?>
+
           <div class="card-body">
-            <h5 class="card-title"><?php echo $brand; ?></h5>
+            <h5 class="card-title product-name"><?php echo $brand; ?></h5>
             <p class="text-muted small"><?php echo $desc; ?></p>
             <p class="fw-bold">₱<?php echo $price; ?></p>
 

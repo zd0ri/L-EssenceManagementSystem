@@ -7,120 +7,180 @@ include('./includes/config.php');
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
 <style>
-  body {
-    font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    color: var(--text-light);
-    background-color: var(--bg-color);
-  }
+/* ===============================================
+   Da’at Studio Inspired Warm Neutrals Theme
+   Refined Palette: Creamy Harvest, Golden Sand,
+   Chestnut Grove, Smoky Oak, Cocoa Bark
+================================================= */
 
-  .about-hero {
-    color: #fff;
-    padding: 130px 0;
-    text-align: center;
-    position: relative;
-  }
+:root {
+  --cream-harvest: #FAF3E3;
+  --golden-sand: #CFBB9F;
+  --chestnut-grove: #5A4939;
+  --smoky-oak: #6D6053;
+  --cocoa-bark: #2C1A11;
 
-  .about-hero::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(51,63,72,0.55);
-  }
+  --bg-color: var(--cream-harvest);
+  --accent: var(--golden-sand);
+  --text-dark: var(--cocoa-bark);
+  --text-light: var(--cream-harvest);
+  --btn-bg: var(--chestnut-grove);
+  --btn-hover: var(--smoky-oak);
+  --card-bg: var(--cream-harvest);
+  --shadow-color: rgba(44, 26, 17, 0.15);
+  --border-color: rgba(95, 73, 57, 0.2);
+}
 
-  .about-hero .container {
-    position: relative;
-    z-index: 2;
-  }
+/* base */
+body {
+  font-family: "Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  color: var(--text-dark);
+  background-color: var(--bg-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-  .about-hero h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 3rem;
-    font-weight: 700;
-    color: var(--text-light);
-  }
+/* About Hero */
+.about-hero {
+  color: var(--text-light);
+  padding: 130px 0;
+  text-align: center;
+  position: relative;
+  background: linear-gradient(rgba(44,26,17,0.55), rgba(93,80,67,0.45)), url('./assets/hero-bg.jpg') center/cover no-repeat;
+}
 
-  .about-hero p {
-    font-size: 1.15rem;
-    margin-top: 15px;
-    line-height: 1.8;
-    max-width: 700px;
-    margin-left: auto;
-    margin-right: auto;
-    color: var(--text-light);
-  }
+.about-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(44,26,17,0.25);
+}
 
-  .about-section {
-    padding: 90px 0;
-  }
+.about-hero .container {
+  position: relative;
+  z-index: 2;
+}
 
-  .about-section h2 {
-    font-family: 'Playfair Display', serif;
-    font-weight: 600;
-    margin-bottom: 25px;
-  }
+.about-hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--text-light);
+}
 
-  .about-section p {
-    font-size: 1.05rem;
-    line-height: 1.9;
-    color: var(--text-light);
-  }
+.about-hero p {
+  font-size: 1.15rem;
+  margin-top: 15px;
+  line-height: 1.8;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  color: var(--cream-harvest);
+}
 
-  .values {
-    padding: 80px 0;
-  }
+/* About Section */
+.about-section {
+  padding: 90px 0;
+  text-align: center;
+}
 
-  .values .card {
-    border: none;
-    background: var(--accent);
-    border-radius: 12px;
-    transition: all 0.3s ease;
-    height: 100%;
-    color: var(--text-light);
-  }
+.about-section h2 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  margin-bottom: 25px;
+  color: var(--cocoa-bark);
+}
 
-  .values .card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-  }
+.about-section p {
+  font-size: 1.05rem;
+  line-height: 1.9;
+  color: var(--smoky-oak);
+}
 
-  .values .card i {
-    color: var(--btn-color);
-  }
+/* Values Section */
+.values {
+  padding: 80px 0;
+  background: var(--cream-harvest);
+}
 
-  .values .card h5 {
-    font-family: 'Playfair Display', serif;
-    font-weight: 600;
-    margin-top: 15px;
-  }
+.values h2 {
+  font-family: 'Playfair Display', serif;
+  color: var(--cocoa-bark);
+  font-weight: 600;
+}
 
-  .values .card p {
-    font-size: 0.95rem;
-    color: rgba(255,255,255,0.9);
-  }
+.values .card {
+  border: none;
+  background: var(--chestnut-grove);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  height: 100%;
+  color: var(--text-light);
+  box-shadow: 0 6px 18px var(--shadow-color);
+}
 
-  .cta {
-    background: transparent;
-    padding: 90px 0;
-    border-top: 1px solid rgba(255,255,255,0.06);
-  }
+.values .card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 26px rgba(44,26,17,0.25);
+}
 
-  .cta h2 {
-    font-family: 'Playfair Display', serif;
-    font-weight: 600;
-  }
+.values .card i {
+  color: var(--golden-sand);
+}
 
-  .btn-dark {
-    border-radius: 0;
-    font-weight: 500;
-    transition: 0.3s;
-    background: var(--btn-color);
-    color: var(--text-light);
-  }
+.values .card h5 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  margin-top: 15px;
+  color: var(--cream-harvest);
+}
 
-  .btn-dark:hover {
-    background-color: color-mix(in srgb, var(--btn-color) 92%, black 8%);
-    transform: translateY(-2px);
-  }
+.values .card p {
+  font-size: 0.95rem;
+  color: rgba(250,243,227,0.9);
+}
+
+/* CTA Section */
+.cta {
+  background: transparent;
+  padding: 90px 0;
+  border-top: 1px solid rgba(44,26,17,0.1);
+  text-align: center;
+}
+
+.cta h2 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  color: var(--cocoa-bark);
+}
+
+.cta p {
+  color: var(--smoky-oak);
+}
+
+.btn-dark {
+  border-radius: 6px;
+  font-weight: 500;
+  transition: 0.3s;
+  background: var(--btn-bg);
+  color: var(--text-light);
+  border: none;
+  padding: 10px 20px;
+}
+
+.btn-dark:hover {
+  background-color: var(--btn-hover);
+  transform: translateY(-2px);
+  color: var(--text-light);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .about-hero h1 { font-size: 2.2rem; }
+}
+@media (max-width: 480px) {
+  .about-hero h1 { font-size: 1.8rem; }
+}
 </style>
 
 <!-- Hero -->
