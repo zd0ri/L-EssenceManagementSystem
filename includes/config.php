@@ -12,10 +12,14 @@ mysqli_select_db($conn, $db_name) or die("Could not select the database $dbname!
 // Fill these with your Mailtrap SMTP credentials
 define('MAIL_HOST', 'smtp.mailtrap.io');
 define('MAIL_PORT', 2525); // 2525 often works with Mailtrap
-define('MAIL_USERNAME', 'your_mailtrap_username');
-define('MAIL_PASSWORD', 'your_mailtrap_password');
-define('MAIL_FROM_ADDRESS', 'no-reply@example.com');
+define('MAIL_USERNAME', 'b8290cf40811e8');
+define('MAIL_PASSWORD', '633fb029128043'); 
+define('MAIL_FROM_ADDRESS', 'lessenthera@gmail.com');
 define('MAIL_FROM_NAME', 'L\'Essence');
 define('MAIL_USE_TLS', false); // set true if using port 587 and STARTTLS
+
+// NOTE: Send API support removed. Use Mailtrap Inbox (SMTP) credentials above
+// to send test emails to the Mailtrap sandbox/inbox. Keep MAIL_USE_TLS as
+// needed (false for port 2525, true if using 587 with STARTTLS).
 
 ?>
