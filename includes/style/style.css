@@ -1,20 +1,9 @@
-/* =========================================================
-   Da’at Studio Inspired Theme
-   Refined Neutrals & Serifs
-   Color Palette:
-   Creamy Harvest (#FAF3E3)
-   Golden Sand   (#CFBB9F)
-   Chestnut Grove(#5A4939)
-   Smoky Oak     (#6D6053)
-   Cocoa Bark    (#2C1A11)
-========================================================= */
-
 /* palette */
 :root {
   --cream-harvest: #FAF3E3;
   --golden-sand: #CFBB9F;
   --chestnut-grove: #5A4939;
-  --smoky-oak: #6D6053;
+  --smoky-oak: rgb(109, 96, 83);
   --cocoa-bark: #2C1A11;
 
   --bg-color: var(--cream-harvest);
@@ -23,9 +12,9 @@
   --text-light: var(--cream-harvest);
   --btn-bg: var(--chestnut-grove);
   --btn-hover: var(--smoky-oak);
-  --card-bg: var(--cream-harvest);
-  --shadow-color: rgba(44, 26, 17, 0.15);
-  --border-color: rgba(95, 73, 57, 0.2);
+  --card-bg: rgba(255, 255, 255, 0.859);
+  --shadow-color: rgba(44, 26, 17, 0.055);
+  --border-color: rgb(109, 96, 83, 0.864);
   --card-radius: 14px;
 }
 
@@ -232,8 +221,9 @@ a:hover { color: var(--chestnut-grove); }
 }
 
 /* cards */
+.card,
 .card.border-0.shadow-sm.dark-card {
-  background: var(--card-bg) !important;
+  background: rgba(250, 243, 227, 0.85) !important;
   color: var(--text-dark) !important;
   border: 1px solid var(--border-color) !important;
   border-radius: var(--card-radius) !important;
@@ -266,7 +256,7 @@ a:hover { color: var(--chestnut-grove); }
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f0f0f0;
+  background: #ffe7be;
   color: #888;
   border-radius: 10px;
 }
