@@ -11,7 +11,7 @@ $orderId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $_SESSION['orderId'] = $orderId;
 
 // fetch order and customer info using current schema
-$sql = "SELECT o.order_id, o.status, c.fullname, c.address, c.contact FROM orders o INNER JOIN customers c ON o.customer_id = c.customer_id WHERE o.order_id = {$orderId} LIMIT 1";
+$sql = "SELECT o.order_id, o.status, o.remarks, o.delivery_method, o.payment_status, o.total_amount, c.fullname, c.address, c.contact FROM orders o INNER JOIN customers c ON o.customer_id = c.customer_id WHERE o.order_id = {$orderId} LIMIT 1";
 $result = mysqli_query($conn, $sql);
 $customer = mysqli_fetch_assoc($result);
 
@@ -19,9 +19,26 @@ $sql = "SELECT p.brand_name AS description, oi.quantity, oi.price_each AS sell_p
 $items = mysqli_query($conn, $sql);
 
 ?>
-<h2><?= $customer['order_id'] ?> </h2>
+<h2>Order #<?= htmlspecialchars($customer['order_id']) ?> </h2>
 <h3><?php echo htmlspecialchars($customer['fullname'] ?? ''); ?></h3>
 <p><?php echo htmlspecialchars(($customer['address'] ?? '') . ' ' . ($customer['contact'] ?? '')); ?></p>
+
+<div class="mb-3">
+    <strong>Delivery method:</strong> <?php echo htmlspecialchars($customer['delivery_method'] ?? ''); ?>
+    &nbsp;|&nbsp;
+    <strong>Payment status:</strong> <?php echo htmlspecialchars($customer['payment_status'] ?? ''); ?>
+    &nbsp;|&nbsp;
+    <strong>Order status:</strong> <?php echo htmlspecialchars($customer['status'] ?? ''); ?>
+</div>
+
+<?php if (!empty($customer['remarks'])): ?>
+    <div class="card mb-3">
+        <div class="card-header">Customer Remarks / Notes</div>
+        <div class="card-body">
+            <p><?php echo nl2br(htmlspecialchars($customer['remarks'])); ?></p>
+        </div>
+    </div>
+<?php endif; ?>
 <table class="table table-striped table-bordered">
     <thead>
         <th>item name</th>
@@ -49,7 +66,10 @@ $items = mysqli_query($conn, $sql);
     }
     ?>
 </table>
-<h4><?= number_format($grandTotal, 2) ?></h4>
+<h4>Total: ₱<?= number_format($grandTotal, 2) ?></h4>
+<?php if (!empty($customer['total_amount'])): ?>
+    <p><small>Recorded order total: ₱<?= number_format((float)$customer['total_amount'],2) ?></small></p>
+<?php endif; ?>
 <form action="updateorder.php" method="POST">
 <select class="form-select form-control" aria-label="Order status" name="status">
     <option value="pending" <?= ($customer['status'] == 'pending') ? 'selected' : '' ?>>pending</option>

@@ -36,27 +36,24 @@
           <li class="nav-item">
             <a class="nav-link" href="/essence_db/about.php">About</a>
           </li>
-          <li class="nav-item dropdown">
-            <?php 
-            if (isset($_SESSION['user_id'])) {
-              echo '<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                      Admin
-                    </a>';
+          <?php
+          // Show admin dropdown only for admins. For regular users show Profile/My Orders links directly.
+          if (isset($_SESSION['user_id']) && isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
+              echo '<li class="nav-item dropdown">';
+              echo '<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Admin</a>';
               echo '<ul class="dropdown-menu">';
-                if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
-                  // point the admin links to the actual admin pages in this project
-                  echo "<li><a class='dropdown-item' href='/essence_db/admin/index.php'>Dashboard</a></li>";
-                  echo "<li><a class='dropdown-item' href='/essence_db/item/index.php'>Items</a></li>";
-                  echo "<li><a class='dropdown-item' href='/essence_db/admin/orders.php'>Orders</a></li>";
-                  echo "<li><a class='dropdown-item' href='/essence_db/admin/users_manage.php'>Users</a></li>";
-              } else {
-                echo '<li><a class="dropdown-item" href="/essence_db/users/profile.php">Profile</a></li>';
-                echo '<li><a class="dropdown-item" href="/essence_db/users/myorders.php">My Orders</a></li>';
-              }
-              echo "</ul>";
-            }
-            ?>
-          </li>
+              echo "<li><a class='dropdown-item' href='/essence_db/admin/index.php'>Dashboard</a></li>";
+              echo "<li><a class='dropdown-item' href='/essence_db/item/index.php'>Items</a></li>";
+              echo "<li><a class='dropdown-item' href='/essence_db/admin/orders.php'>Orders</a></li>";
+              echo "<li><a class='dropdown-item' href='/essence_db/admin/users_manage.php'>Users</a></li>";
+              echo '</ul>';
+              echo '</li>';
+          } elseif (isset($_SESSION['user_id'])) {
+              // regular logged-in user: show Profile and My Orders as normal nav items
+              echo '<li class="nav-item"><a class="nav-link" href="/essence_db/users/profile.php">Profile</a></li>';
+              echo '<li class="nav-item"><a class="nav-link" href="/essence_db/users/my_orders.php">My Orders</a></li>';
+          }
+          ?>
         </ul>
         
         <!-- Search bar (single across site) -->
