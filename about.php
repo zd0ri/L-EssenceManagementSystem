@@ -42,7 +42,7 @@ body {
 
 /* About Hero */
 .about-hero {
-  color: var(--text-light);
+  color: var(--text-dark);
   padding: 130px 0;
   text-align: center;
   position: relative;
@@ -125,19 +125,19 @@ body {
 }
 
 .values .card i {
-  color: var(--golden-sand);
+  color:  rgba(255, 204, 63, 0.9)
 }
 
 .values .card h5 {
   font-family: 'Playfair Display', serif;
   font-weight: 600;
   margin-top: 15px;
-  color: var(--cream-harvest);
+  color: var(--text-dark);
 }
 
 .values .card p {
   font-size: 0.95rem;
-  color: rgba(250,243,227,0.9);
+  color: var(--text-dark);
 }
 
 /* CTA Section */

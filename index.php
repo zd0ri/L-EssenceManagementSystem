@@ -23,7 +23,7 @@ include __DIR__ . '/includes/header.php';
       echo '<div class="search-result">Showing results for <strong>' . htmlspecialchars($search) . '</strong></div>';
     }
 
-    $sql = "SELECT p.product_id AS productId, p.brand_name, p.description, p.price, p.image, i.quantity
+  $sql = "SELECT p.product_id AS productId, p.brand_name, p.scent_type AS scent_type, p.price, p.image, i.quantity
             FROM products p
             INNER JOIN inventory i ON p.product_id = i.product_id
             WHERE i.quantity > 0 AND p.status = 'available' " . $whereExtra . " ORDER BY p.product_id ASC";
@@ -35,7 +35,7 @@ include __DIR__ . '/includes/header.php';
     <?php
     if ($results && mysqli_num_rows($results) > 0) {
       while ($row = mysqli_fetch_assoc($results)) {
-        $desc = htmlspecialchars($row['description']);
+  $scent = htmlspecialchars($row['scent_type']);
         $brand = htmlspecialchars($row['brand_name']);
         $price = number_format($row['price'], 2);
         $rawImage = $row['image'];
@@ -84,7 +84,7 @@ include __DIR__ . '/includes/header.php';
 
           <div class="card-body">
             <h5 class="card-title product-name"><?php echo $brand; ?></h5>
-            <p class="text-muted small"><?php echo $desc; ?></p>
+            <p class="text-muted small"><?php echo $scent; ?></p>
             <p class="fw-bold">₱<?php echo $price; ?></p>
 
             <form method="POST" action="./cart/cart_update.php" class="mt-2">
