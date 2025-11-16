@@ -11,8 +11,9 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
 }
 
 ?>
-<div class="container mt-4">
-    <h1 class="mb-4">Admin Dashboard</h1>
+<div class="admin-page">
+    <div class="admin-card">
+        <h1 class="mb-4">Admin Dashboard</h1>
 
     <?php include('../includes/alert.php'); ?>
 
@@ -58,6 +59,7 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
         </div>
     </div>
 
+    </div>
 </div>
 
 <?php include('../includes/footer.php'); ?>

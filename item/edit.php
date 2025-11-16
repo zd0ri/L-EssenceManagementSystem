@@ -30,7 +30,8 @@ $qty = $row['quantity'] ?? 0;
 $image = $row['image'] ?? '';
 
 ?>
-<div class="container">
+<div class="admin-page">
+    <div class="admin-card">
     <h2>Edit Product</h2>
     <form method="POST" action="update.php" enctype="multipart/form-data">
         <input type="hidden" name="product_id" value="<?php echo (int)$id; ?>">
@@ -146,7 +147,8 @@ $image = $row['image'] ?? '';
         </div>
         <button class="btn btn-primary" type="submit">Save changes</button>
         <a class="btn btn-secondary" href="index.php">Cancel</a>
-    </form>
+        </form>
+    </div>
 </div>
 
 <?php include('../includes/footer.php'); ?>

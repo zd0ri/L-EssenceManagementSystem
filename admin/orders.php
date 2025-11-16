@@ -18,9 +18,11 @@ $result = mysqli_query($conn, $sql);
 $itemCount = $result ? mysqli_num_rows($result) : 0;
 
 ?>
-<h2>number of items <?= $itemCount ?> </h2>
-<?php include("../includes/alert.php"); ?>
-<table class="table table-striped table-bordered">
+<div class="admin-page">
+    <div class="admin-card">
+        <h2>Number of orders: <?= $itemCount ?></h2>
+        <?php include("../includes/alert.php"); ?>
+        <table class="table table-striped table-bordered admin-table">
     <?php
     while ($row = mysqli_fetch_assoc($result)) {
         echo "<tr>";
@@ -55,7 +57,9 @@ $itemCount = $result ? mysqli_num_rows($result) : 0;
         
     }
     ?>
-</table>
+        </table>
+    </div>
+</div>
 <?php
 include('../includes/footer.php');
 ?>

@@ -76,20 +76,21 @@ if ($heroRes && !empty($heroRes['setting_value'])) {
 }
 ?>
 
-<div class="container py-4">
-  <h2>Site Settings</h2>
-  <?php if (isset($_SESSION['settings_msg'])): ?>
-    <div class="alert alert-info"><?php echo htmlspecialchars($_SESSION['settings_msg']); ?></div>
-    <?php unset($_SESSION['settings_msg']); ?>
-  <?php endif; ?>
+<div class="admin-page">
+  <div class="admin-card">
+    <h2>Site Settings</h2>
+    <?php if (isset($_SESSION['settings_msg'])): ?>
+      <div class="alert alert-info"><?php echo htmlspecialchars($_SESSION['settings_msg']); ?></div>
+      <?php unset($_SESSION['settings_msg']); ?>
+    <?php endif; ?>
 
-  <div class="row">
-    <div class="col-md-8">
-      <div class="card">
-        <div class="card-header">
-          <h5>Homepage Hero Image</h5>
-        </div>
-        <div class="card-body">
+    <div class="row">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header">
+            <h5>Homepage Hero Image</h5>
+          </div>
+          <div class="card-body">
           <?php if ($heroImage): ?>
             <div class="mb-3">
               <label>Current Hero Image:</label>
@@ -117,6 +118,7 @@ if ($heroRes && !empty($heroRes['setting_value'])) {
               <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Delete the current hero image?');">Delete Hero Image</button>
             </form>
           <?php endif; ?>
+          </div>
         </div>
       </div>
     </div>

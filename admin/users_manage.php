@@ -11,10 +11,11 @@ $itemCount = mysqli_num_rows($result);
 
 ?>
 
-<div class="container mt-4">
-    <h2>Users (<?= $itemCount ?>)</h2>
-    <?php include('../includes/alert.php'); ?>
-    <table class="table table-striped">
+<div class="admin-page">
+    <div class="admin-card">
+        <h2>Users (<?= $itemCount ?>)</h2>
+        <?php include('../includes/alert.php'); ?>
+        <table class="table table-striped admin-table">
         <thead>
             <tr>
                 <th>ID</th>
@@ -69,7 +70,8 @@ $itemCount = mysqli_num_rows($result);
             </tr>
         <?php endwhile; ?>
         </tbody>
-    </table>
+        </table>
+    </div>
 </div>
 
 <?php include('../includes/footer.php'); ?>

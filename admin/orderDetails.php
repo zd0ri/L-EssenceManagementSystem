@@ -19,17 +19,19 @@ $sql = "SELECT p.brand_name AS description, oi.quantity, oi.price_each AS sell_p
 $items = mysqli_query($conn, $sql);
 
 ?>
-<h2>Order #<?= htmlspecialchars($customer['order_id']) ?> </h2>
-<h3><?php echo htmlspecialchars($customer['fullname'] ?? ''); ?></h3>
-<p><?php echo htmlspecialchars(($customer['address'] ?? '') . ' ' . ($customer['contact'] ?? '')); ?></p>
+<div class="admin-page">
+    <div class="admin-card">
+        <h2>Order #<?= htmlspecialchars($customer['order_id']) ?> </h2>
+        <h3><?php echo htmlspecialchars($customer['fullname'] ?? ''); ?></h3>
+        <p><?php echo htmlspecialchars(($customer['address'] ?? '') . ' ' . ($customer['contact'] ?? '')); ?></p>
 
-<div class="mb-3">
-    <strong>Delivery method:</strong> <?php echo htmlspecialchars($customer['delivery_method'] ?? ''); ?>
-    &nbsp;|&nbsp;
-    <strong>Payment status:</strong> <?php echo htmlspecialchars($customer['payment_status'] ?? ''); ?>
-    &nbsp;|&nbsp;
-    <strong>Order status:</strong> <?php echo htmlspecialchars($customer['status'] ?? ''); ?>
-</div>
+        <div class="mb-3">
+            <strong>Delivery method:</strong> <?php echo htmlspecialchars($customer['delivery_method'] ?? ''); ?>
+            &nbsp;|&nbsp;
+            <strong>Payment status:</strong> <?php echo htmlspecialchars($customer['payment_status'] ?? ''); ?>
+            &nbsp;|&nbsp;
+            <strong>Order status:</strong> <?php echo htmlspecialchars($customer['status'] ?? ''); ?>
+        </div>
 
 <?php if (!empty($customer['remarks'])): ?>
     <div class="card mb-3">
@@ -39,7 +41,7 @@ $items = mysqli_query($conn, $sql);
         </div>
     </div>
 <?php endif; ?>
-<table class="table table-striped table-bordered">
+<table class="table table-striped table-bordered admin-table">
     <thead>
         <th>item name</th>
         <th>quantity</th>
@@ -87,6 +89,9 @@ $items = mysqli_query($conn, $sql);
 </select>
 <button type="submit" class="btn btn-primary">update order</button>
 </form>
+
+    </div>
+</div>
 
 <?php
 

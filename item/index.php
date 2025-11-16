@@ -4,7 +4,6 @@ session_start();
 require_once(__DIR__ . '/../includes/admin_auth.php');
 include('../includes/adminHeader.php');
 include('../includes/config.php');
-print_r($_SESSION);
 // if (!isset($_SESSION['user_id'])) {
 //     $_SESSION['message'] = "please Login to access the page";
 //     header("Location: ../user/login.php" );
@@ -29,14 +28,20 @@ $itemCount = mysqli_num_rows($result);
 ?>
 
 
-<body>
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <a href="create.php" class="btn btn-primary btn-lg">Add Item</a>
-        <!-- Search is provided by the admin header (single search) -->
+<div class="admin-page">
+  <div class="admin-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 style="margin:0;">Items (<?=$itemCount ?>)</h2>
+      <a href="create.php" class="btn btn-primary">+ Add Item</a>
     </div>
-    <h2>Number of items: <?=$itemCount ?> </h2>
-    <table class="table table-striped table-bordered">
-        <?php
+    
+    <table class="table table-striped table-bordered admin-table">
+      <thead>
+        <tr>
+          <th>Image</th><th>ID</th><th>Brand</th><th>Description</th><th>Price</th><th>Qty</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
         while ($row = mysqli_fetch_assoc($result)) {
             echo "<tr>";
             $img = htmlspecialchars($row['image'] ?? '');
@@ -128,7 +133,9 @@ $itemCount = mysqli_num_rows($result);
         }
         ?>
     </table>
-</body>
+  </div>
+</div>
+
 <?php
 include('../includes/footer.php');
 

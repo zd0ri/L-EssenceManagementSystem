@@ -75,10 +75,11 @@ $brands = [];
 $rb = mysqli_query($conn, "SELECT * FROM brands ORDER BY name ASC");
 if ($rb && mysqli_num_rows($rb) > 0) while ($r = mysqli_fetch_assoc($rb)) $brands[] = $r;
 ?>
-<div class="container py-4">
-  <h2>Manage Brands</h2>
-  <?php if (isset($_SESSION['brand_admin_msg'])) { echo '<div class="alert alert-info">' . htmlspecialchars($_SESSION['brand_admin_msg']) . '</div>'; unset($_SESSION['brand_admin_msg']); } ?>
-  <div class="row">
+<div class="admin-page">
+  <div class="admin-card">
+    <h2>Manage Brands</h2>
+    <?php if (isset($_SESSION['brand_admin_msg'])) { echo '<div class="alert alert-info">' . htmlspecialchars($_SESSION['brand_admin_msg']) . '</div>'; unset($_SESSION['brand_admin_msg']); } ?>
+    <div class="row">
     <div class="col-md-6">
       <h5>Existing Brands</h5>
       <ul class="list-group">
@@ -121,6 +122,8 @@ if ($rb && mysqli_num_rows($rb) > 0) while ($r = mysqli_fetch_assoc($rb)) $brand
         <button class="btn btn-primary" type="submit">Save</button>
         <button type="button" class="btn btn-secondary" id="cancel-edit" style="display:none;">Cancel</button>
       </form>
+    </div>
+  </div>
     </div>
   </div>
 </div>

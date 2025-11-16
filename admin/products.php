@@ -13,22 +13,15 @@ if ($qstr !== '') {
 
 ?>
 
-<style>
-.admin-products { padding: 24px; }
-.table-img { width:72px; height:72px; object-fit:cover; border-radius:8px; }
-.sidebar-mini { display:none; }
-</style>
+<div class="admin-page">
+  <div class="admin-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 style="margin: 0;">Products</h2>
+      <a href="/essence_db/item/create.php" class="btn btn-primary">+ Add Product</a>
+    </div>
 
-<div class="container admin-products">
-  <div class="d-flex justify-content-between mb-3">
-    <h3>Products</h3>
-    <a href="/essence_db/item/create.php" class="btn btn-primary">Add Product</a>
-  </div>
-
-  <div class="card">
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table align-middle">
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered admin-table">
           <thead>
             <tr>
               <th></th>
@@ -68,7 +61,5 @@ if ($res && mysqli_num_rows($res) > 0) {
       </div>
     </div>
   </div>
-
-</div>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
