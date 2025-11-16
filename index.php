@@ -9,9 +9,84 @@ include __DIR__ . '/includes/header.php';
 
 <?php include_once __DIR__ . '/includes/alert.php'; ?>
 
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <h1>The smell is a word. Perfume is literature.</h1>
+      <p>Discover the beauty of fragrance with our collection of premium perfumes to enrich your everyday scent.</p>
+      <div class="hero-cta">
+        <a href="#popular-products" class="btn btn-dark btn-lg">Shop Now</a>
+        <a href="/essence_db/brands.php" class="btn btn-outline-primary btn-lg">Browse Brands</a>
+      </div>
+    </div>
+    <?php
+    // Load hero image from DB or use fallback
+    $heroImg = '/essence_db/images/hero.jpg';
+    // Ensure site_settings table exists
+    mysqli_query($conn, "CREATE TABLE IF NOT EXISTS site_settings (
+      setting_id INT AUTO_INCREMENT PRIMARY KEY,
+      setting_key VARCHAR(191) NOT NULL UNIQUE,
+      setting_value LONGTEXT NULL,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    $heroQuery = mysqli_query($conn, "SELECT setting_value FROM site_settings WHERE setting_key = 'hero_image' LIMIT 1");
+    if ($heroQuery && mysqli_num_rows($heroQuery) > 0) {
+      $heroRes = mysqli_fetch_assoc($heroQuery);
+      if ($heroRes && !empty($heroRes['setting_value'])) {
+        $heroImg = '/essence_db/' . ltrim($heroRes['setting_value'], '/');
+      }
+    }
+    ?>
+    <div class="hero-media">
+      <img src="<?php echo htmlspecialchars($heroImg); ?>" alt="Hero image" onerror="this.src='/essence_db/images/hero.jpg'" />
+    </div>
+  </div>
+</section>
+
 <section id="popular-products" class="py-5">
   <div class="container text-center">
-    <h2 class="mb-5">Popular Products</h2>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="mb-0">Popular Products</h2>
+      <a href="/essence_db/brands.php" class="btn btn-sm btn-outline-secondary">Browse Brands</a>
+    </div>
+
+    <!-- Brands preview section (brand-logos strip from DB if available) -->
+    <section class="brands">
+      <div class="container text-center">
+        <h3 class="mb-3">Featured Brands</h3>
+        <div class="brand-logos">
+          <?php
+          $brandRows = [];
+          $q = mysqli_query($conn, "CREATE TABLE IF NOT EXISTS brands (
+            brand_id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(191) NOT NULL,
+            description TEXT NULL,
+            image VARCHAR(255) NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+          $rb = mysqli_query($conn, "SELECT brand_id, name, image FROM brands ORDER BY name ASC LIMIT 10");
+          if ($rb && mysqli_num_rows($rb) > 0) {
+            while ($br = mysqli_fetch_assoc($rb)) $brandRows[] = $br;
+          }
+          if (count($brandRows) === 0) {
+            // fallback to static list if no brands created yet
+            $featuredBrands = ['Valentino','Creed','Perfume Dessert','Ian Darcy','Jo Malone', 'Dior', 'Tom Ford', 'Calvin Klein', 'Clinique', 'D&G'];
+            foreach ($featuredBrands as $b) {
+              echo '<a href="/essence_db/brand.php?brand=' . urlencode($b) . '"><img src="" alt="' . htmlspecialchars($b) . '" title="' . htmlspecialchars($b) . '" style="height:48px;object-fit:contain;" onerror="this.style.display=\'none\'" /></a>';
+            }
+          } else {
+            foreach ($brandRows as $br) {
+              if (!empty($br['image'])) {
+                $img = htmlspecialchars('/essence_db/' . ltrim($br['image'], '/'));
+                $url = '/essence_db/brand.php?brand=' . urlencode($br['name']);
+                echo '<a href="' . htmlspecialchars($url) . '"><img src="' . $img . '" alt="' . htmlspecialchars($br['name']) . '" title="' . htmlspecialchars($br['name']) . '" style="height:48px;object-fit:contain;max-width:140px;" /></a>';
+              }
+            }
+          }
+          ?>
+        </div>
+      </div>
+    </section>
 
     <?php
     $search = '';
@@ -23,19 +98,38 @@ include __DIR__ . '/includes/header.php';
       echo '<div class="search-result">Showing results for <strong>' . htmlspecialchars($search) . '</strong></div>';
     }
 
-  $sql = "SELECT p.product_id AS productId, p.brand_name, p.scent_type AS scent_type, p.price, p.image, i.quantity
-            FROM products p
-            INNER JOIN inventory i ON p.product_id = i.product_id
-            WHERE i.quantity > 0 AND p.status = 'available' " . $whereExtra . " ORDER BY p.product_id ASC";
+    // show best-selling products first (based on order_items), fall back to product id
+    if (trim($whereExtra) === '') {
+      // show only products that have been sold
+      $sql = "SELECT p.product_id AS productId, p.brand_name, p.scent_type AS scent_type, p.price, p.image, i.quantity,
+      COALESCE(SUM(oi.quantity),0) AS sales_count
+    FROM products p
+    LEFT JOIN order_items oi ON p.product_id = oi.product_id
+    INNER JOIN inventory i ON p.product_id = i.product_id
+    WHERE i.quantity > 0 AND p.status = 'available'
+    GROUP BY p.product_id
+    HAVING COALESCE(SUM(oi.quantity),0) > 0
+    ORDER BY sales_count DESC, p.product_id ASC";
+    } else {
+      // when searching, include items regardless of sales
+      $sql = "SELECT p.product_id AS productId, p.brand_name, p.scent_type AS scent_type, p.price, p.image, i.quantity,
+      COALESCE(SUM(oi.quantity),0) AS sales_count
+    FROM products p
+    LEFT JOIN order_items oi ON p.product_id = oi.product_id
+    INNER JOIN inventory i ON p.product_id = i.product_id
+    WHERE i.quantity > 0 AND p.status = 'available' " . $whereExtra . "
+    GROUP BY p.product_id
+    ORDER BY sales_count DESC, p.product_id ASC";
+    }
 
     $results = mysqli_query($conn, $sql);
     ?>
 
-    <div class="row g-4 justify-content-center">
+    <div class="products-grid">
     <?php
     if ($results && mysqli_num_rows($results) > 0) {
       while ($row = mysqli_fetch_assoc($results)) {
-  $scent = htmlspecialchars($row['scent_type']);
+        $scent = htmlspecialchars($row['scent_type']);
         $brand = htmlspecialchars($row['brand_name']);
         $price = number_format($row['price'], 2);
         $rawImage = $row['image'];
@@ -56,44 +150,54 @@ include __DIR__ . '/includes/header.php';
         $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
     ?>
 
-      <div class="col-lg-3 col-md-4 col-sm-6">
-        <div class="card shadow-sm text-center p-2 product-card">
-          <?php
-          if (count($imgs) === 0) {
-            echo '<div class="card-img-top missing">No image</div>';
-          } elseif (count($imgs) === 1) {
-            $p = str_replace('\\', '/', $imgs[0]);
-            $imgUrl = preg_match('#^https?://#i', $p) ? $p : $baseUrl . ltrim($p, '/');
-            echo '<img src="' . htmlspecialchars($imgUrl) . '" class="card-img-top img-fluid" alt="' . htmlspecialchars($brand) . '">';
-          } else {
-            $carouselId = 'homeCarousel_' . $row['productId'];
-            echo '<div id="' . $carouselId . '" class="carousel slide" data-bs-ride="carousel">';
-            echo '<div class="carousel-inner">';
-            foreach ($imgs as $i => $pRaw) {
-              $p = str_replace('\\', '/', $pRaw);
+      <div class="product-item">
+        <div class="card shadow-sm product-card">
+          <!-- Product Image / Carousel -->
+          <div style="position: relative; overflow: hidden; border-radius: 12px 12px 0 0;">
+            <?php
+            if (count($imgs) === 0) {
+              echo '<div class="card-img-top missing">No image</div>';
+            } elseif (count($imgs) === 1) {
+              $p = str_replace('\\', '/', $imgs[0]);
               $imgUrl = preg_match('#^https?://#i', $p) ? $p : $baseUrl . ltrim($p, '/');
-              $active = $i === 0 ? ' active' : '';
-              echo '<div class="carousel-item' . $active . '">';
-              echo '<img src="' . htmlspecialchars($imgUrl) . '" class="d-block w-100" alt="' . htmlspecialchars($brand) . '">';
+              echo '<img src="' . htmlspecialchars($imgUrl) . '" class="card-img-top img-fluid" alt="' . htmlspecialchars($brand) . '">';
+            } else {
+              $carouselId = 'homeCarousel_' . $row['productId'];
+              echo '<div id="' . $carouselId . '" class="carousel slide" data-bs-ride="carousel">';
+              echo '<div class="carousel-inner">';
+              foreach ($imgs as $i => $pRaw) {
+                $p = str_replace('\\', '/', $pRaw);
+                $imgUrl = preg_match('#^https?://#i', $p) ? $p : $baseUrl . ltrim($p, '/');
+                $active = $i === 0 ? ' active' : '';
+                echo '<div class="carousel-item' . $active . '">';
+                echo '<img src="' . htmlspecialchars($imgUrl) . '" class="d-block w-100" alt="' . htmlspecialchars($brand) . '">';
+                echo '</div>';
+              }
+              echo '</div>';
               echo '</div>';
             }
-            echo '</div>';
-            echo '</div>';
-          }
-          ?>
+            ?>
+            <!-- Best Seller Badge -->
+            <?php if (!empty($row['sales_count']) && (int)$row['sales_count'] >= 3): ?>
+              <div class="badge-bestseller">Best seller</div>
+            <?php endif; ?>
+          </div>
 
+          <!-- Card Body -->
           <div class="card-body">
-            <h5 class="card-title product-name"><?php echo $brand; ?></h5>
-            <p class="text-muted small"><?php echo $scent; ?></p>
-            <p class="fw-bold">₱<?php echo $price; ?></p>
+            <h5 class="card-title product-name"><a href="/essence_db/brand.php?brand=<?php echo urlencode($brand); ?>"><?php echo $brand; ?></a></h5>
+            <p class="product-scent"><?php echo $scent; ?></p>
+            <p class="product-price">₱<?php echo $price; ?></p>
 
-            <form method="POST" action="./cart/cart_update.php" class="mt-2">
+            <form method="POST" action="./cart/cart_update.php" class="mt-auto">
               <input type="hidden" name="item_id" value="<?php echo $row['productId']; ?>">
               <input type="hidden" name="type" value="add">
-              <input type="number" name="item_qty" value="1" min="1" max="<?php echo $maxQty; ?>" class="form-control mb-2">
-              <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-dark">Add to Cart</button>
-                <a href="/essence_db/product.php?id=<?php echo $row['productId']; ?>" class="btn btn-outline-secondary">View</a>
+              <div class="product-qty">
+                <input type="number" name="item_qty" value="1" min="1" max="<?php echo $maxQty; ?>" class="form-control form-control-sm">
+              </div>
+              <div class="product-actions">
+                <button type="submit" class="btn btn-dark btn-sm">Add to Cart</button>
+                <a href="/essence_db/product.php?id=<?php echo $row['productId']; ?>" class="btn btn-outline-secondary btn-sm">View</a>
               </div>
             </form>
           </div>
@@ -103,7 +207,7 @@ include __DIR__ . '/includes/header.php';
     <?php
       }
     } else {
-      echo '<div class="col-12 text-center">No products found.</div>';
+      echo '<div style="grid-column: 1 / -1; text-align: center; padding: 40px;">No products found.</div>';
     }
     ?>
     </div>

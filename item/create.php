@@ -12,13 +12,30 @@ include('../includes/config.php');
     <div class="container">
         <form method="POST" action="store.php" enctype="multipart/form-data">
             <div class="form-group">
-                <label for="name">Item Name</label>
-                <input type="text"
-                    class="form-control"
-                    id="name"
-                    placeholder="Enter brand name"
-                    name="brand_name"
-                    value="<?php if (isset($_SESSION['brand'])) echo htmlspecialchars($_SESSION['brand']); ?>" />
+                                <label for="name">Brand</label>
+                                <?php
+                                // try to load dynamic brands for a select box
+                                $brandsForSelect = [];
+                                $qb = mysqli_query($conn, "SELECT brand_id, name FROM brands ORDER BY name ASC");
+                                if ($qb && mysqli_num_rows($qb) > 0) {
+                                        while ($br = mysqli_fetch_assoc($qb)) $brandsForSelect[] = $br;
+                                }
+                                ?>
+                                <?php if (count($brandsForSelect) > 0): ?>
+                                    <select class="form-select mb-2" id="brand_select" name="brand_select">
+                                        <option value="">-- Select existing brand (or choose Other) --</option>
+                                        <?php foreach ($brandsForSelect as $b): ?>
+                                            <option value="<?php echo htmlspecialchars($b['name']); ?>"><?php echo htmlspecialchars($b['name']); ?></option>
+                                        <?php endforeach; ?>
+                                        <option value="__other__">Other (enter below)</option>
+                                    </select>
+                                <?php endif; ?>
+                                <input type="text"
+                                        class="form-control"
+                                        id="name"
+                                        placeholder="Enter brand name"
+                                        name="brand_name"
+                                        value="<?php if (isset($_SESSION['brand'])) echo htmlspecialchars($_SESSION['brand']); ?>" />
 
                 <small>
                     <?php

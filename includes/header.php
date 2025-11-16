@@ -36,6 +36,9 @@
           <li class="nav-item">
             <a class="nav-link" href="/essence_db/about.php">About</a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/essence_db/brands.php">Brands</a>
+          </li>
           <?php
           // Show admin dropdown only for admins. For regular users show Profile/My Orders links directly.
           if (isset($_SESSION['user_id']) && isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
@@ -46,6 +49,8 @@
               echo "<li><a class='dropdown-item' href='/essence_db/item/index.php'>Items</a></li>";
               echo "<li><a class='dropdown-item' href='/essence_db/admin/orders.php'>Orders</a></li>";
               echo "<li><a class='dropdown-item' href='/essence_db/admin/users_manage.php'>Users</a></li>";
+              echo "<li><a class='dropdown-item' href='/essence_db/admin/brands.php'>Brands</a></li>";
+              echo "<li><a class='dropdown-item' href='/essence_db/admin/settings.php'>Settings</a></li>";
               echo '</ul>';
               echo '</li>';
           } elseif (isset($_SESSION['user_id'])) {
