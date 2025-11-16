@@ -12,10 +12,25 @@
   <!-- Elegant/classy fonts for the site (headings + body) -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
   <link href="/essence_db/includes/style/style.css" rel="stylesheet">
+  <?php
+  // Load admin theme CSS if on an admin page
+  $isAdminPage = strpos($_SERVER['REQUEST_URI'], '/admin/') !== false;
+  if ($isAdminPage) {
+    echo '<link href="/essence_db/includes/style/admin.css" rel="stylesheet">' . "\n";
+  }
+  ?>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
   </script>
   <title>Shop</title>
+  <script>
+    // Detect if on an admin page and add admin-mode class
+    if (window.location.pathname.includes('/admin/')) {
+      document.addEventListener('DOMContentLoaded', function() {
+        document.body.classList.add('admin-mode');
+      });
+    }
+  </script>
 </head>
 
 <body>
@@ -30,9 +45,18 @@
 
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="/essence_db/index.php">Home</a>
-          </li>
+          <?php
+          // Show Dashboard for admins, Home for regular users
+          if (isset($_SESSION['user_id']) && isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
+              echo '<li class="nav-item">';
+              echo '<a class="nav-link active" aria-current="page" href="/essence_db/admin/dashboard.php">Dashboard</a>';
+              echo '</li>';
+          } else {
+              echo '<li class="nav-item">';
+              echo '<a class="nav-link active" aria-current="page" href="/essence_db/index.php">Home</a>';
+              echo '</li>';
+          }
+          ?>
           <li class="nav-item">
             <a class="nav-link" href="/essence_db/about.php">About</a>
           </li>
@@ -45,10 +69,9 @@
               echo '<li class="nav-item dropdown">';
               echo '<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Admin</a>';
               echo '<ul class="dropdown-menu">';
-              echo "<li><a class='dropdown-item' href='/essence_db/admin/index.php'>Dashboard</a></li>";
-              echo "<li><a class='dropdown-item' href='/essence_db/item/index.php'>Items</a></li>";
+              echo "<li><a class='dropdown-item' href='/essence_db/admin/products.php'>Products</a></li>";
               echo "<li><a class='dropdown-item' href='/essence_db/admin/orders.php'>Orders</a></li>";
-              echo "<li><a class='dropdown-item' href='/essence_db/admin/users_manage.php'>Users</a></li>";
+              echo "<li><a class='dropdown-item' href='/essence_db/admin/users_manage.php'>Customers</a></li>";
               echo "<li><a class='dropdown-item' href='/essence_db/admin/brands.php'>Brands</a></li>";
               echo "<li><a class='dropdown-item' href='/essence_db/admin/settings.php'>Settings</a></li>";
               echo '</ul>';

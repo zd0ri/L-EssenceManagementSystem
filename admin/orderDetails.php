@@ -15,7 +15,7 @@ $sql = "SELECT o.order_id, o.status, o.remarks, o.delivery_method, o.payment_sta
 $result = mysqli_query($conn, $sql);
 $customer = mysqli_fetch_assoc($result);
 
-$sql = "SELECT p.brand_name AS description, oi.quantity, oi.price_each AS sell_price FROM order_items oi INNER JOIN products p ON oi.product_id = p.product_id WHERE oi.order_id = {$orderId}";
+$sql = "SELECT p.brand_name AS description, oi.quantity, oi.price_each AS sell_price, COALESCE((SELECT path FROM product_images WHERE product_id = oi.product_id ORDER BY product_image_id ASC LIMIT 1), p.image) AS image_path FROM order_items oi INNER JOIN products p ON oi.product_id = p.product_id WHERE oi.order_id = {$orderId}";
 $items = mysqli_query($conn, $sql);
 
 ?>
@@ -54,13 +54,20 @@ $items = mysqli_query($conn, $sql);
         $grandTotal += $total;
         echo "<tr>";
 
-        echo "<td>{$row['description']}</td>";
-        echo "<td>{$row['quantity']} </td>";
-        echo "<td>{$row['sell_price']}</td>";
+        $imgHtml = '';
+        if (!empty($row['image_path'])) {
+            $p = str_replace('\\', '/', $row['image_path']);
+            $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+            $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
+            $imgUrl = preg_match('#^https?://#i', $p) ? $p : $baseUrl . ltrim($p, '/');
+            $imgHtml = '<img src="' . htmlspecialchars($imgUrl) . '" style="width:64px;height:64px;object-fit:cover;border-radius:6px;margin-right:8px;">';
+        }
 
-        echo "<td>{$total}</td>";
+        echo "<td>" . $imgHtml . htmlspecialchars($row['description']) . "</td>";
+        echo "<td>" . (int)$row['quantity'] . "</td>";
+        echo "<td>₱" . number_format((float)$row['sell_price'],2) . "</td>";
 
-
+        echo "<td>₱" . number_format((float)$total,2) . "</td>";
 
         echo "</tr>";
     }

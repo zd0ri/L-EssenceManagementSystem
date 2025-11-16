@@ -42,14 +42,29 @@ include('../includes/config.php');
                         $product_name = $cart_itm["item_name"];
                         $product_qty = $cart_itm["item_qty"];
                         $product_price = $cart_itm["item_price"];
-                        $product_code = $cart_itm["item_id"];
+                        $product_code = (int)$cart_itm["item_id"];
                         $subtotal = ($product_price * $product_qty); //calculate Price x Qty
                         $bg_color = ($b++ % 2 == 1) ? 'odd' : 'even'; //class for zebra stripe 
+
+                        // fetch product image (first product_images.path or fallback to products.image)
+                        $imgUrl = '';
+                        $qimg = mysqli_query($conn, "SELECT COALESCE((SELECT path FROM product_images WHERE product_id = p.product_id ORDER BY product_image_id ASC LIMIT 1), p.image) AS img_path FROM products p WHERE p.product_id = {$product_code} LIMIT 1");
+                        if ($qimg && mysqli_num_rows($qimg) > 0) {
+                            $ri = mysqli_fetch_assoc($qimg);
+                            $praw = $ri['img_path'];
+                            if (!empty($praw)) {
+                                $p = str_replace('\\', '/', $praw);
+                                $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                                $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
+                                $imgUrl = preg_match('#^https?://#i', $p) ? $p : $baseUrl . ltrim($p, '/');
+                            }
+                        }
+
                         echo '<tr class="' . $bg_color . '">';
                         echo '<td><input type="text" size="2" maxlength="2" name="product_qty[' . $product_code . ']" value="' . $product_qty . '" /></td>';
-                        echo '<td>' . $product_name . '</td>';
-                        echo '<td>' . $product_price . '</td>';
-                        echo '<td>' . $subtotal . '</td>';
+                        echo '<td>' . (!empty($imgUrl) ? '<img src="' . htmlspecialchars($imgUrl) . '" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:6px;margin-right:8px;vertical-align:middle;">' : '') . htmlspecialchars($product_name) . '</td>';
+                        echo '<td>₱' . number_format((float)$product_price,2) . '</td>';
+                        echo '<td>₱' . number_format((float)$subtotal,2) . '</td>';
                         echo '<td><input type="checkbox" name="remove_code[]" value="' . $product_code . '" /></td>';
                         echo '</tr>';
                         $total = ($total + $subtotal); //add subtotal to total var

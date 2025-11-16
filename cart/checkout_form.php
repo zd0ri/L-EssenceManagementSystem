@@ -36,11 +36,31 @@ if (isset($_SESSION['user_id'])) {
     <div class="col-md-7">
       <h5>Order Summary</h5>
       <ul class="list-group mb-3">
-        <?php foreach ($cart as $it): ?>
+        <?php foreach ($cart as $it): 
+                $pid = (int)$it['item_id'];
+                // fetch first image for product
+                $imgPath = '';
+                $qimg = mysqli_query($conn, "SELECT COALESCE((SELECT path FROM product_images WHERE product_id = p.product_id ORDER BY product_image_id ASC LIMIT 1), p.image) AS img_path FROM products p WHERE p.product_id = {$pid} LIMIT 1");
+                if ($qimg && mysqli_num_rows($qimg) > 0) {
+                    $rimg = mysqli_fetch_assoc($qimg);
+                    $praw = $rimg['img_path'];
+                    if (!empty($praw)) {
+                        $p = str_replace('\\', '/', $praw);
+                        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                        $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
+                        $imgPath = preg_match('#^https?://#i', $p) ? $p : $baseUrl . ltrim($p, '/');
+                    }
+                }
+        ?>
           <li class="list-group-item d-flex justify-content-between align-items-center">
-            <div>
-              <div><?php echo htmlspecialchars($it['item_name']); ?></div>
-              <small class="text-muted">Qty: <?php echo (int)$it['item_qty']; ?> x ₱<?php echo number_format((float)$it['item_price'],2); ?></small>
+            <div class="d-flex align-items-center">
+              <?php if (!empty($imgPath)): ?>
+                <img src="<?php echo htmlspecialchars($imgPath); ?>" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px;margin-right:12px;">
+              <?php endif; ?>
+              <div>
+                <div><?php echo htmlspecialchars($it['item_name']); ?></div>
+                <small class="text-muted">Qty: <?php echo (int)$it['item_qty']; ?> x ₱<?php echo number_format((float)$it['item_price'],2); ?></small>
+              </div>
             </div>
             <div>₱<?php echo number_format((float)$it['item_price'] * (int)$it['item_qty'],2); ?></div>
           </li>
