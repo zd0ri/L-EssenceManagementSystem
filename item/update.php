@@ -157,5 +157,10 @@ if ($check && mysqli_num_rows($check) > 0) {
 }
 
 $_SESSION['success'] = 'Product updated.';
-header('Location: index.php');
+// support "Save & Return to Dashboard" from create/edit forms
+$redirect = 'index.php';
+if (isset($_POST['return']) && $_POST['return'] === 'dashboard') {
+    $redirect = '/essence_db/admin/index.php';
+}
+header('Location: ' . $redirect);
 exit();

@@ -96,39 +96,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // handle multiple images upload (input name images[])
         $uploadDir = __DIR__ . '/../uploads/products';
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+        
+        $imageErrors = [];
+        
         if (isset($_FILES['images']) && is_array($_FILES['images']['name'])) {
             $inserted = 0;
-            for ($i = 0; $i < count($_FILES['images']['name']); $i++) {
-                if (!isset($_FILES['images']['error'][$i])) continue;
+            $totalFiles = count($_FILES['images']['name']);
+            
+            for ($i = 0; $i < $totalFiles; $i++) {
+                // Check if file exists at this index
+                if (empty($_FILES['images']['name'][$i])) {
+                    continue;
+                }
+                
                 $err = $_FILES['images']['error'][$i];
+                
+                // Skip if no file uploaded
+                if ($err === UPLOAD_ERR_NO_FILE) {
+                    continue;
+                }
+                
+                // Handle upload errors
                 if ($err !== UPLOAD_ERR_OK) {
-                    if ($err !== UPLOAD_ERR_NO_FILE) {
-                        $_SESSION['imageError'][] = "Upload error for file index {$i}: code {$err}";
-                    }
+                    $imageErrors[] = "Upload error for file {$i}: code {$err}";
                     continue;
                 }
+                
                 $tmp = $_FILES['images']['tmp_name'][$i];
-                $type = mime_content_type($tmp);
-                if (!in_array($type, ['image/jpeg','image/png','image/jpg'])) {
-                    $_SESSION['imageError'][] = "Unsupported file type for file index {$i}: {$type}";
+                $filename = $_FILES['images']['name'][$i];
+                
+                // Validate file type by extension
+                $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                if (!in_array($ext, ['jpg', 'jpeg', 'png'])) {
+                    $imageErrors[] = "Unsupported file type for {$filename}: only JPG, JPEG, PNG allowed";
                     continue;
                 }
-                $basename = uniqid('prod_' . $product_id . '_') . '.' . (strpos($type,'png')!==false ? 'png' : 'jpg');
+                
+                // Create unique filename
+                $basename = uniqid('prod_' . $product_id . '_') . '.' . $ext;
                 $targetPath = $uploadDir . '/' . $basename;
+                
+                // Upload file
                 if (move_uploaded_file($tmp, $targetPath)) {
                     $relPath = 'uploads/products/' . $basename;
                     $relEsc = mysqli_real_escape_string($conn, $relPath);
+                    
                     if (mysqli_query($conn, "INSERT INTO product_images (product_id, path) VALUES ({$product_id}, '{$relEsc}')")) {
                         $inserted++;
                     } else {
-                        $_SESSION['imageError'][] = 'DB insert failed for ' . $relPath . ': ' . mysqli_error($conn);
+                        $imageErrors[] = 'DB insert failed for ' . $relPath . ': ' . mysqli_error($conn);
                     }
                 } else {
-                    $_SESSION['imageError'][] = "Failed to move uploaded file for index {$i}.";
+                    $imageErrors[] = "Failed to upload {$filename}";
                 }
             }
-            if ($inserted === 0 && !empty($_SESSION['imageError'])) {
-                $_SESSION['message'] = 'Image upload failed: ' . implode(' | ', $_SESSION['imageError']);
+            
+            // If no images were uploaded and there were errors, report them
+            if ($inserted === 0 && !empty($imageErrors)) {
+                $_SESSION['message'] = 'Image upload failed: ' . implode(' | ', $imageErrors);
                 header("Location: create.php");
                 exit();
             }
@@ -143,7 +168,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         unset($_SESSION['brand'], $_SESSION['scent'], $_SESSION['size'], $_SESSION['price'], $_SESSION['desc'], $_SESSION['qty']);
 
         // Redirect to admin items list so admin can continue managing products
-        header("Location: index.php");
+        $redirect = 'index.php';
+        if (isset($_POST['return']) && $_POST['return'] === 'dashboard') {
+            // absolute path to admin dashboard
+            $redirect = '/essence_db/admin/index.php';
+        }
+        header("Location: " . $redirect);
         exit();
     } else {
         echo "Inventory insert error: " . mysqli_error($conn);

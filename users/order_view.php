@@ -43,7 +43,7 @@ $resItems = mysqli_stmt_get_result($q);
 ?>
 <div class="container py-4">
   <h2>Order #<?php echo (int)$order['order_id']; ?></h2>
-  <p class="text-muted">Placed on <?php echo htmlspecialchars($order['order_date']); ?> — Status: <?php echo htmlspecialchars($order['status']); ?></p>
+  <p class="text-muted">Placed on <?php echo htmlspecialchars($order['order_date']); ?> — Status: <?php echo htmlspecialchars(ucfirst($order['status'])); ?></p>
   <div class="row">
     <div class="col-md-8">
       <div class="card mb-3"><div class="card-body">
@@ -63,7 +63,31 @@ $resItems = mysqli_stmt_get_result($q);
                 <div class="text-muted small">Qty: <?php echo (int)$it['quantity']; ?> • Price: ₱<?php echo number_format((float)$it['price_each'],2); ?></div>
               </div>
               <div>
-                <a href="/essence_db/product.php?id=<?php echo (int)$it['product_id']; ?>#reviews" class="btn btn-sm btn-outline-primary">Add Review</a>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('review-form-<?php echo (int)$it['product_id']; ?>').style.display = (document.getElementById('review-form-<?php echo (int)$it['product_id']; ?>').style.display === 'block' ? 'none' : 'block')">Add Review</button>
+                <div id="review-form-<?php echo (int)$it['product_id']; ?>" style="display:none; margin-top:8px; max-width:420px;">
+                  <form method="POST" action="/essence_db/product.php?id=<?php echo (int)$it['product_id']; ?>" enctype="multipart/form-data">
+                    <input type="hidden" name="review_id" value="0">
+                    <input type="hidden" name="return_to" value="<?php echo htmlspecialchars($_SERVER['REQUEST_URI']); ?>">
+                    <div class="mb-1">
+                      <label class="form-label">Rating</label>
+                      <select name="rating" class="form-select form-select-sm" style="max-width:120px">
+                        <?php for ($ri = 5; $ri >= 1; $ri--): ?>
+                          <option value="<?php echo $ri; ?>"><?php echo $ri; ?></option>
+                        <?php endfor; ?>
+                      </select>
+                    </div>
+                    <div class="mb-1">
+                      <textarea name="review_text" class="form-control" rows="2" placeholder="Write your review..."></textarea>
+                    </div>
+                    <div class="mb-1">
+                      <input type="file" name="review_image" class="form-control form-control-sm">
+                    </div>
+                    <div>
+                      <button class="btn btn-sm btn-primary" type="submit">Save</button>
+                      <button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('review-form-<?php echo (int)$it['product_id']; ?>').style.display='none'">Cancel</button>
+                    </div>
+                  </form>
+                </div>
               </div>
             </div>
             <hr />

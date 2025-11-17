@@ -124,19 +124,9 @@
           <?php
           // Show admin dropdown only for admins (but NOT on admin pages - sidebar is shown instead)
           $isAdminPage = strpos($_SERVER['REQUEST_URI'], '/admin/') !== false;
-          if (isset($_SESSION['user_id']) && isset($_SESSION['role']) && $_SESSION['role'] === 'admin' && !$isAdminPage) {
-              echo '<li class="nav-item dropdown">';
-              echo '<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Admin</a>';
-              echo '<ul class="dropdown-menu">';
-              echo "<li><a class='dropdown-item' href='/essence_db/admin/dashboard.php'>Dashboard</a></li>";
-              echo "<li><a class='dropdown-item' href='/essence_db/admin/products.php'>Products</a></li>";
-              echo "<li><a class='dropdown-item' href='/essence_db/admin/orders.php'>Orders</a></li>";
-              echo "<li><a class='dropdown-item' href='/essence_db/admin/users_manage.php'>Customers</a></li>";
-              echo "<li><a class='dropdown-item' href='/essence_db/admin/brands.php'>Brands</a></li>";
-              echo "<li><a class='dropdown-item' href='/essence_db/admin/settings.php'>Settings</a></li>";
-              echo '</ul>';
-              echo '</li>';
-          } elseif (isset($_SESSION['user_id']) && !$isAdminPage) {
+          $isAdmin = isset($_SESSION['user_id']) && isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+          
+          if (isset($_SESSION['user_id']) && !$isAdmin && !$isAdminPage) {
               // regular logged-in user: show Profile and My Orders as normal nav items (but only on non-admin pages)
               echo '<li class="nav-item"><a class="nav-link" href="/essence_db/users/profile.php">Profile</a></li>';
               echo '<li class="nav-item"><a class="nav-link" href="/essence_db/users/my_orders.php">My Orders</a></li>';
@@ -154,12 +144,14 @@
 
         <!-- Icons section -->
         <div class="d-flex align-items-center">
-          <a href="/essence_db/users/profile.php" class="text-dark me-3">
-            <i class="fa-solid fa-user fa-lg"></i>
-          </a>
-          <a href="/essence_db/cart/view_cart.php" class="text-dark me-3">
-            <i class="fa-solid fa-cart-shopping fa-lg"></i>
-          </a>
+          <?php if (!isset($isAdmin) || !$isAdmin): ?>
+            <a href="/essence_db/users/profile.php" class="text-dark me-3">
+              <i class="fa-solid fa-user fa-lg"></i>
+            </a>
+            <a href="/essence_db/cart/view_cart.php" class="text-dark me-3">
+              <i class="fa-solid fa-cart-shopping fa-lg"></i>
+            </a>
+          <?php endif; ?>
 
           <?php
           if (!isset($_SESSION['user_id'])) {

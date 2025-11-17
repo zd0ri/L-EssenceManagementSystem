@@ -143,10 +143,64 @@ $image = $row['image'] ?? '';
                 </div>
         <div class="form-group mb-2">
             <label>Add / Replace Images (you can upload multiple)</label>
-            <input class="form-control" type="file" name="images[]" multiple accept="image/png,image/jpeg">
+            <input class="form-control mb-2" type="file" name="images[]" id="images" multiple accept="image/png,image/jpeg">
+            <div id="imagePreview" style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;"></div>
         </div>
-        <button class="btn btn-primary" type="submit">Save changes</button>
-        <a class="btn btn-secondary" href="index.php">Cancel</a>
+        <script>
+        const imagesInput = document.getElementById('images');
+        const imagePreview = document.getElementById('imagePreview');
+        
+        imagesInput.addEventListener('change', function(e) {
+            imagePreview.innerHTML = '';
+            const files = e.target.files;
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (!file.type.match('image.*')) continue;
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const div = document.createElement('div');
+                    div.style.position = 'relative';
+                    div.style.width = '100px';
+                    div.style.height = '100px';
+                    div.style.borderRadius = '8px';
+                    div.style.overflow = 'hidden';
+                    div.style.boxShadow = '0 2px 8px rgba(44, 26, 17, 0.1)';
+                    
+                    const img = document.createElement('img');
+                    img.src = event.target.result;
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
+                    
+                    const label = document.createElement('div');
+                    label.textContent = (i + 1);
+                    label.style.position = 'absolute';
+                    label.style.top = '4px';
+                    label.style.right = '4px';
+                    label.style.background = 'var(--golden-sand)';
+                    label.style.color = 'white';
+                    label.style.borderRadius = '50%';
+                    label.style.width = '24px';
+                    label.style.height = '24px';
+                    label.style.display = 'flex';
+                    label.style.alignItems = 'center';
+                    label.style.justifyContent = 'center';
+                    label.style.fontSize = '12px';
+                    label.style.fontWeight = 'bold';
+                    
+                    div.appendChild(img);
+                    div.appendChild(label);
+                    imagePreview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        </script>
+    <button class="btn btn-primary" type="submit">Save changes</button>
+    <button class="btn btn-outline-success" type="submit" name="return" value="dashboard" style="margin-left:8px;">Save & Return to Dashboard</button>
+    <a class="btn btn-secondary" href="index.php" style="margin-left:8px;">Cancel</a>
         </form>
     </div>
 </div>

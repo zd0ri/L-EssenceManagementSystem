@@ -43,8 +43,8 @@ $res2 = mysqli_stmt_get_result($stmt2);
                 echo '<td>' . (int)$row['order_id'] . '</td>';
                 echo '<td>' . htmlspecialchars($row['order_date']) . '</td>';
                 echo '<td>₱' . number_format((float)$row['total_amount'],2) . '</td>';
-                echo '<td>' . htmlspecialchars($row['payment_status']) . '</td>';
-                echo '<td>' . htmlspecialchars($row['status']) . '</td>';
+                echo '<td>' . htmlspecialchars(ucfirst($row['payment_status'])) . '</td>';
+                echo '<td>' . htmlspecialchars(ucfirst($row['status'])) . '</td>';
                 echo '<td>';
                 echo "<a class='btn btn-sm btn-outline-primary me-2' href='order_view.php?id=" . (int)$row['order_id'] . "'>View</a>";
                 // Buy Again form

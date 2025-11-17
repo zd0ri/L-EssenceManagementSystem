@@ -70,7 +70,9 @@ include('../includes/config.php');
                 <textarea class="form-control mb-3" id="description" name="description" rows="4"><?php if (isset($_SESSION['desc'])) echo htmlspecialchars($_SESSION['desc']); ?></textarea>
 
                 <label for="images" class="form-label">Product Images (JPG/PNG) — Select Multiple</label>
-                <input class="form-control mb-3" type="file" name="images[]" id="images" multiple accept="image/png,image/jpeg" />
+                <input class="form-control mb-2" type="file" name="images[]" id="images" multiple accept="image/png,image/jpeg" />
+                <div id="imagePreview" style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;"></div>
+                <div id="imageCount" style="font-size: 12px; color: var(--smoky-oak); margin-bottom: 12px;"></div>
                 <small class="muted-small">
                     <?php
                     if (isset($_SESSION['imageError'])) {
@@ -78,12 +80,86 @@ include('../includes/config.php');
                         unset($_SESSION['imageError']);
                     }
                     ?></small>
+                
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const imagesInput = document.getElementById('images');
+                    const imagePreview = document.getElementById('imagePreview');
+                    const imageCount = document.getElementById('imageCount');
+                    
+                    imagesInput.addEventListener('change', function(e) {
+                        imagePreview.innerHTML = '';
+                        imageCount.innerHTML = '';
+                        const files = e.target.files;
+                        let validCount = 0;
+                        
+                        if (files.length === 0) {
+                            return;
+                        }
+                        
+                        for (let i = 0; i < files.length; i++) {
+                            const file = files[i];
+                            
+                            // Check if it's an image
+                            if (!file.type.match('image.*')) {
+                                continue;
+                            }
+                            
+                            validCount++;
+                            const currentIndex = validCount;
+                            const reader = new FileReader();
+                            
+                            reader.onload = function(event) {
+                                const div = document.createElement('div');
+                                div.style.position = 'relative';
+                                div.style.width = '100px';
+                                div.style.height = '100px';
+                                div.style.borderRadius = '8px';
+                                div.style.overflow = 'hidden';
+                                div.style.boxShadow = '0 2px 8px rgba(44, 26, 17, 0.1)';
+                                div.style.cursor = 'default';
+                                
+                                const img = document.createElement('img');
+                                img.src = event.target.result;
+                                img.style.width = '100%';
+                                img.style.height = '100%';
+                                img.style.objectFit = 'cover';
+                                
+                                const label = document.createElement('div');
+                                label.textContent = currentIndex;
+                                label.style.position = 'absolute';
+                                label.style.top = '4px';
+                                label.style.right = '4px';
+                                label.style.background = 'var(--golden-sand)';
+                                label.style.color = 'white';
+                                label.style.borderRadius = '50%';
+                                label.style.width = '24px';
+                                label.style.height = '24px';
+                                label.style.display = 'flex';
+                                label.style.alignItems = 'center';
+                                label.style.justifyContent = 'center';
+                                label.style.fontSize = '12px';
+                                label.style.fontWeight = 'bold';
+                                
+                                div.appendChild(img);
+                                div.appendChild(label);
+                                imagePreview.appendChild(div);
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                        
+                        // Show count feedback
+                        imageCount.innerHTML = '<strong>' + validCount + '</strong> image' + (validCount !== 1 ? 's' : '') + ' selected';
+                    });
+                });
+                </script>
 
             </div>
-            <div class="admin-actions">
-              <button type="submit" class="btn btn-primary" name="submit" value="submit">Save Product</button>
-              <a href="index.php" role="button" class="btn btn-outline-secondary">Cancel</a>
-            </div>
+                        <div class="admin-actions">
+                            <button type="submit" class="btn btn-primary" name="submit" value="submit">Save Product</button>
+                            <button type="submit" class="btn btn-outline-success" name="return" value="dashboard" style="margin-left:8px;">Save & Return to Dashboard</button>
+                            <a href="index.php" role="button" class="btn btn-outline-secondary" style="margin-left:8px;">Cancel</a>
+                        </div>
         </form>
   </div>
 </div>

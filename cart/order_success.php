@@ -271,7 +271,7 @@ $payment = $res3 ? mysqli_fetch_assoc($res3) : null;
     <div class="order-header">
       <h1>Thanks for your order.</h1>
       <div class="order-number">Order #<?php echo $order['order_id']; ?></div>
-      <span class="order-status"><?php echo htmlspecialchars($order['status']); ?></span>
+      <span class="order-status"><?php echo htmlspecialchars(ucfirst($order['status'])); ?></span>
     </div>
 
     <div class="order-meta">

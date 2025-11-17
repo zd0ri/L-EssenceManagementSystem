@@ -28,9 +28,9 @@ $items = mysqli_query($conn, $sql);
         <div class="mb-3">
             <strong>Delivery method:</strong> <?php echo htmlspecialchars($customer['delivery_method'] ?? ''); ?>
             &nbsp;|&nbsp;
-            <strong>Payment status:</strong> <?php echo htmlspecialchars($customer['payment_status'] ?? ''); ?>
+            <strong>Payment status:</strong> <?php echo htmlspecialchars(ucfirst($customer['payment_status'] ?? '')); ?>
             &nbsp;|&nbsp;
-            <strong>Order status:</strong> <?php echo htmlspecialchars($customer['status'] ?? ''); ?>
+            <strong>Order status:</strong> <?php echo htmlspecialchars(ucfirst($customer['status'] ?? '')); ?>
         </div>
 
 <?php if (!empty($customer['remarks'])): ?>

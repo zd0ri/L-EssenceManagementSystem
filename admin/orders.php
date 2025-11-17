@@ -30,10 +30,10 @@ $itemCount = $result ? mysqli_num_rows($result) : 0;
         echo "<td>₱" . number_format((float)$row['total'],2) . "</td>";
         echo "<td>" . htmlspecialchars($row['fullname'] ?? 'Guest') . "</td>";
         echo "<td>" . htmlspecialchars($row['email'] ?? '') . "</td>";
-        echo "<td>" . htmlspecialchars($row['payment_status']) . "</td>";
+        echo "<td>" . htmlspecialchars(ucfirst($row['payment_status'])) . "</td>";
         // status with color
         $color = $row['status'] === 'completed' ? 'green' : 'red';
-        echo "<td style='color: {$color}'>" . htmlspecialchars($row['status']) . "</td>";
+        echo "<td style='color: {$color}'>" . htmlspecialchars(ucfirst($row['status'])) . "</td>";
         echo "<td>" . htmlspecialchars($row['order_date']) . "</td>";
 
         // actions: view details and change status (form)

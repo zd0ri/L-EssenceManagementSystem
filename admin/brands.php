@@ -66,7 +66,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     mysqli_query($conn, "DELETE FROM brands WHERE brand_id = {$id}");
     $_SESSION['success'] = 'Brand deleted successfully.';
   }
-  header('Location: brands.php'); exit();
+  // allow optional return to dashboard: pass return=dashboard in GET/POST to redirect back to admin index
+  $redirect = 'brands.php';
+  if ((isset($_REQUEST['return']) && $_REQUEST['return'] === 'dashboard') || (isset($_POST['return']) && $_POST['return'] === 'dashboard')) {
+    $redirect = 'index.php';
+  }
+  header('Location: ' . $redirect); exit();
 }
 
 // NOW include header after all header() calls are done
@@ -79,7 +84,10 @@ if ($rb && mysqli_num_rows($rb) > 0) while ($r = mysqli_fetch_assoc($rb)) $brand
 ?>
 <div class="admin-main-content">
   <div class="admin-card">
-    <h2>Manage Brands</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <h2 style="margin:0">Manage Brands</h2>
+      <a href="/essence_db/admin/index.php" class="btn btn-outline-secondary">&larr; Dashboard</a>
+    </div>
     <?php if (isset($_SESSION['brand_admin_msg'])) { echo '<div class="alert alert-info">' . htmlspecialchars($_SESSION['brand_admin_msg']) . '</div>'; unset($_SESSION['brand_admin_msg']); } ?>
     <div class="row">
     <div class="col-md-6">
@@ -88,7 +96,7 @@ if ($rb && mysqli_num_rows($rb) > 0) while ($r = mysqli_fetch_assoc($rb)) $brand
         <?php foreach ($brands as $b): ?>
           <li class="list-group-item d-flex justify-content-between align-items-center">
             <div>
-              <?php if (!empty($b['image'])): ?><img src="/<?php echo ltrim($b['image'],'/'); ?>" style="height:36px;object-fit:contain;margin-right:8px;vertical-align:middle;" /><?php endif; ?>
+              <?php if (!empty($b['image'])): ?><img src="/essence_db/<?php echo ltrim($b['image'],'/'); ?>" style="height:36px;object-fit:contain;margin-right:8px;vertical-align:middle;" /><?php endif; ?>
               <strong><?php echo htmlspecialchars($b['name']); ?></strong>
               <div class="small text-muted"><?php echo htmlspecialchars($b['description']); ?></div>
             </div>
@@ -121,7 +129,8 @@ if ($rb && mysqli_num_rows($rb) > 0) while ($r = mysqli_fetch_assoc($rb)) $brand
           <label for="image">Image (optional)</label>
           <input type="file" id="image" name="image" class="form-control">
         </div>
-        <button class="btn btn-primary" type="submit">Save</button>
+  <button class="btn btn-primary" type="submit">Save</button>
+  <button class="btn btn-outline-success" type="submit" name="return" value="dashboard" style="margin-left:8px;">Save & Return to Dashboard</button>
         <button type="button" class="btn btn-secondary" id="cancel-edit" style="display:none;">Cancel</button>
       </form>
     </div>

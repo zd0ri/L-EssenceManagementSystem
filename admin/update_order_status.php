@@ -18,7 +18,29 @@ if ($order_id <= 0 || !in_array($status, $allowed)) {
     exit();
 }
 
-$stmt = mysqli_prepare($conn, 'UPDATE orders SET status = ? WHERE order_id = ?');
+// Check payment method to determine if payment_status should be updated
+$paymentMethod = '';
+$paymentMethodQuery = mysqli_prepare($conn, 'SELECT payment_method FROM payments WHERE order_id = ? LIMIT 1');
+if ($paymentMethodQuery) {
+    mysqli_stmt_bind_param($paymentMethodQuery, 'i', $order_id);
+    mysqli_stmt_execute($paymentMethodQuery);
+    $paymentResult = mysqli_stmt_get_result($paymentMethodQuery);
+    $paymentData = $paymentResult ? mysqli_fetch_assoc($paymentResult) : null;
+    $paymentMethod = $paymentData ? trim($paymentData['payment_method']) : '';
+    error_log("Order {$order_id} - Payment Method: '{$paymentMethod}'");
+}
+
+// Only auto-mark as paid if status is "completed" AND payment method is "Cash on Delivery"
+$updateQuery = 'UPDATE orders SET status = ?';
+if ($status === 'completed' && trim($paymentMethod) === 'Cash on Delivery') {
+    $updateQuery .= ', payment_status = "paid"';
+    error_log("Order {$order_id} - Marking as PAID (COD + Completed)");
+} else {
+    error_log("Order {$order_id} - NOT marking as paid. Status={$status}, PaymentMethod={$paymentMethod}");
+}
+$updateQuery .= ' WHERE order_id = ?';
+
+$stmt = mysqli_prepare($conn, $updateQuery);
 if ($stmt) {
     mysqli_stmt_bind_param($stmt, 'si', $status, $order_id);
     if (mysqli_stmt_execute($stmt)) {
@@ -26,7 +48,7 @@ if ($stmt) {
         // after updating status, send notification email to customer with order details
         include_once __DIR__ . '/../includes/mail.php';
         // fetch order and customer email
-        $s = mysqli_prepare($conn, 'SELECT o.order_id, o.total_amount, o.status, c.email, c.fullname FROM orders o LEFT JOIN customers c ON o.customer_id = c.customer_id WHERE o.order_id = ? LIMIT 1');
+        $s = mysqli_prepare($conn, 'SELECT o.order_id, o.total_amount, o.status, o.payment_status, c.email, c.fullname FROM orders o LEFT JOIN customers c ON o.customer_id = c.customer_id WHERE o.order_id = ? LIMIT 1');
         if ($s) {
             mysqli_stmt_bind_param($s, 'i', $order_id);
             mysqli_stmt_execute($s);
@@ -46,7 +68,12 @@ if ($stmt) {
                 }
 
                 // build email HTML
-                $html = "<h3>Order #{$order_id} - Status updated to " . htmlspecialchars($status) . "</h3>";
+                $paymentStatus = ucfirst($ord['payment_status']);
+                $html = "<h3>Order #{$order_id} - Status updated to " . htmlspecialchars(ucfirst($status));
+                if ($status === 'completed') {
+                    $html .= " (Payment: " . htmlspecialchars($paymentStatus) . ")";
+                }
+                $html .= "</h3>";
                 $html .= "<p>Hi " . htmlspecialchars($ord['fullname']) . ",</p>";
                 $html .= "<p>Your order status has been updated. Below are the order details:</p>";
                 $html .= "<table style='width:100%;border-collapse:collapse'>";

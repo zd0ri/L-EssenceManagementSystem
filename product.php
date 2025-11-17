@@ -1,7 +1,6 @@
 <?php
 session_start();
 require_once __DIR__ . '/includes/config.php';
-include __DIR__ . '/includes/header.php';
 
 // helper to mask bad words
 function mask_bad_words($text) {
@@ -205,7 +204,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
         $_SESSION['message'] = 'Failed to save review.';
       }
     }
-  header('Location: product.php?id=' . $id . '#reviews');
+  // If the POST included a return_to value (e.g. submitted from order view), redirect back there.
+  $redirect = 'product.php?id=' . $id . '#reviews';
+  if (!empty($_POST['return_to'])) {
+    $rt = trim($_POST['return_to']);
+    // basic allow-list: only accept internal relative paths starting with '/'
+    if (strpos($rt, '/') === 0) {
+      $redirect = $rt;
+    }
+  }
+  header('Location: ' . $redirect);
   exit();
 }
 
@@ -253,6 +261,9 @@ if ($qr) {
         }
     }
 }
+
+// include header AFTER any POST handling / redirects to avoid "headers already sent"
+include __DIR__ . '/includes/header.php';
 
 ?>
 <div class="container py-4">
@@ -320,39 +331,14 @@ if ($qr) {
         }
         ?>
 
-        <?php if ($canReview): ?>
-          <h5>Add / Update your review</h5>
-          <form id="review-form" method="POST" action="product.php?id=<?php echo $id; ?>" enctype="multipart/form-data">
-            <input type="hidden" name="review_id" id="review_id" value="0">
-            <div class="mb-2">
-              <label for="rating">Rating</label>
-              <select name="rating" id="rating" class="form-select" style="max-width:120px">
-                <?php for ($i=5;$i>=1;$i--): ?>
-                  <option value="<?php echo $i; ?>" <?php echo ($i === 5) ? 'selected' : ''; ?>><?php echo $i; ?></option>
-                <?php endfor; ?>
-              </select>
-            </div>
-            <div class="mb-2">
-              <label for="review_text">Your review</label>
-              <textarea name="review_text" id="review_text" class="form-control"></textarea>
-            </div>
-            <div class="mb-2">
-              <label for="review_image">Photo (optional)</label>
-              <input type="file" name="review_image" id="review_image" class="form-control">
-              <div id="current-image-preview" style="margin-top:.5rem;display:none;">
-                <img src="" id="current-image-src" style="max-width:150px;max-height:150px;object-fit:cover;border-radius:.25rem;border:1px solid #ddd;" />
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" name="remove_image" id="remove_image" value="1">
-                  <label class="form-check-label" for="remove_image">Remove current image</label>
-                </div>
-              </div>
-            </div>
-            <button class="btn btn-primary" type="submit">Save Review</button>
-            <button type="button" id="cancel-edit" class="btn btn-secondary" style="display:none;margin-left:.5rem;">Cancel</button>
-          </form>
-        <?php else: ?>
-          <div class="alert alert-info">You can only review this product after purchasing it.</div>
-        <?php endif; ?>
+        <?php
+        // Reviews can only be added from the "My Orders" page. Make product page read-only for reviews.
+        if (isset($_SESSION['user_id'])) {
+            echo '<div class="alert alert-info">To add a review for this product, please go to <a href="/essence_db/users/my_orders.php">My Orders</a> and add your review from the order details.</div>';
+        } else {
+            echo '<div class="alert alert-secondary">Please <a href="/essence_db/users/login.php">login</a> to view reviews.</div>';
+        }
+        ?>
       <?php else: ?>
         <div class="alert alert-secondary">Please <a href="/essence_db/users/login.php">login</a> to leave a review.</div>
       <?php endif; ?>
@@ -376,20 +362,7 @@ if ($qr) {
           <div style="margin-top:.75rem;"><img src="<?php echo htmlspecialchars($baseUrl . ltrim($r['review_image'], '/')); ?>" style="max-width:200px;max-height:200px;object-fit:cover;border-radius:.25rem;border:1px solid #ddd;" alt="review image"></div>
         <?php endif; ?>
         <div class="text-muted small">Posted: <?php echo $r['created_at']; ?></div>
-        <?php if (isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] === (int)$r['user_id']): ?>
-          <div class="mt-2">
-            <button class="btn btn-sm btn-outline-secondary" type="button" onclick="startEdit(<?php echo (int)$r['review_id']; ?>)">Edit</button>
-            <form method="POST" action="product.php?id=<?php echo $id; ?>" style="display:inline-block;margin-left:.5rem;" onsubmit="return confirm('Delete this review?');">
-              <input type="hidden" name="review_id" value="<?php echo (int)$r['review_id']; ?>">
-              <input type="hidden" name="delete_review" value="1">
-              <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
-            </form>
-          </div>
-          <script>
-            // attach review data for editing
-            window['reviewData_' + <?php echo (int)$r['review_id']; ?>] = <?php echo json_encode(['id'=>(int)$r['review_id'],'rating'=>(int)$r['rating'],'text'=>$r['review_text'],'image'=>($r['review_image'] ?: null)]); ?>;
-          </script>
-        <?php endif; ?>
+        <!-- Reviews are read-only on the product page. Editing and adding reviews is available through My Orders only. -->
       </div>
     <?php endforeach; ?>
   <?php endif; ?>
