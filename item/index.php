@@ -4,7 +4,8 @@ session_start();
 require_once(__DIR__ . '/../includes/admin_auth.php');
 include('../includes/adminHeader.php');
 include('../includes/config.php');
-print_// if (!isset($_SESSION['user_id'])) {
+
+// if (!isset($_SESSION['user_id'])) {
 //     $_SESSION['message'] = "please Login to access the page";
 //     header("Location: ../user/login.php" );
 // }
