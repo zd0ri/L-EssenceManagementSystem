@@ -18,11 +18,30 @@ $all_cart = isset($_SESSION['cart_products']) && is_array($_SESSION['cart_produc
 $selected_ids = isset($_POST['selected_items']) ? array_map('intval', (array)$_POST['selected_items']) : [];
 $cart = [];
 if (!empty($selected_ids)) {
-    foreach ($all_cart as $item) {
-        if (in_array((int)$item['item_id'], $selected_ids)) {
-            $cart[] = $item;
-        }
+  foreach ($all_cart as $item) {
+    if (in_array((int)$item['item_id'], $selected_ids)) {
+      $cart[] = $item;
     }
+  }
+}
+
+// If the view_cart passed live quantities (selected_qty), override item_qty in the $cart
+$posted_qty = [];
+if (isset($_POST['selected_qty']) && is_array($_POST['selected_qty'])) {
+  // keys are product ids => qty
+  foreach ($_POST['selected_qty'] as $k => $v) {
+    $pid = (int)$k;
+    $posted_qty[$pid] = (int)$v;
+  }
+  if (!empty($posted_qty) && !empty($cart)) {
+    foreach ($cart as &$it) {
+      $pid = (int)$it['item_id'];
+      if (isset($posted_qty[$pid])) {
+        $it['item_qty'] = $posted_qty[$pid];
+      }
+    }
+    unset($it);
+  }
 }
 
 if (count($cart) === 0) {

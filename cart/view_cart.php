@@ -117,64 +117,99 @@ include('../includes/config.php');
                 </div>
             </div>
         </div>
-        <!-- Hidden form for checkout submission -->
+        </form> <!-- end cart_update form -->
+
+        <!-- Hidden form for checkout submission (must be outside the cart update form) -->
         <form id="checkout-form" method="POST" action="checkout_form.php" style="display:none;">
             <!-- selected items will be added here by JavaScript -->
         </form>
-    </form>
 
     <script>
-    // Update order summary when checkboxes change
+    // Update order summary when checkboxes or quantity inputs change
     function updateOrderSummary() {
         let selectedCount = 0;
         let selectedTotal = 0.0;
-        
+
         document.querySelectorAll('.item-checkbox:checked').forEach(checkbox => {
             selectedCount++;
-            let price = parseFloat(checkbox.dataset.price);
-            let qty = parseInt(checkbox.dataset.qty);
+            let price = parseFloat(checkbox.dataset.price) || 0;
+            // try to read live qty from the nearby qty input; fall back to dataset
+            let qty = parseInt(checkbox.dataset.qty) || 0;
+            const productItem = checkbox.closest('.product-item');
+            if (productItem) {
+                const qtyInput = productItem.querySelector('.qty-input');
+                if (qtyInput) {
+                    const qv = parseInt(qtyInput.value);
+                    if (!isNaN(qv) && qv > 0) qty = qv;
+                }
+            }
             selectedTotal += price * qty;
         });
-        
+
         document.getElementById('selected-count').textContent = selectedCount;
         document.getElementById('selected-subtotal').textContent = selectedTotal.toFixed(2);
         document.getElementById('selected-total').textContent = selectedTotal.toFixed(2);
         document.getElementById('btn-checkout').disabled = selectedCount === 0;
     }
 
-    // Checkout with only selected items
+    // Checkout with only selected items (include live quantities)
     function checkoutSelected() {
         let selectedIds = [];
+        let quantities = {};
         document.querySelectorAll('.item-checkbox:checked').forEach(checkbox => {
-            selectedIds.push(checkbox.value);
+            const id = checkbox.value;
+            selectedIds.push(id);
+            // read live qty from the qty input if present
+            let qty = parseInt(checkbox.dataset.qty) || 0;
+            const productItem = checkbox.closest('.product-item');
+            if (productItem) {
+                const qtyInput = productItem.querySelector('.qty-input');
+                if (qtyInput) {
+                    const qv = parseInt(qtyInput.value);
+                    if (!isNaN(qv) && qv > 0) qty = qv;
+                }
+            }
+            quantities[id] = qty;
         });
-        
+
         if (selectedIds.length === 0) {
             alert('Please select at least one item to checkout.');
             return;
         }
-        
+
         // Clear previous hidden inputs and add current selections
         let checkoutForm = document.getElementById('checkout-form');
         checkoutForm.innerHTML = ''; // Clear previous inputs
-        
+
         selectedIds.forEach(id => {
             let input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'selected_items[]';
             input.value = id;
             checkoutForm.appendChild(input);
+
+            // include quantity for this item so checkout_form.php can use the live qty
+            let qinput = document.createElement('input');
+            qinput.type = 'hidden';
+            qinput.name = 'selected_qty[' + id + ']';
+            qinput.value = quantities[id];
+            checkoutForm.appendChild(qinput);
         });
-        
+
         // Submit the form
         checkoutForm.submit();
     }
 
-    // Initialize on page load and when checkboxes change
+    // Initialize on page load and when checkboxes/qty inputs change
     document.addEventListener('DOMContentLoaded', function() {
         updateOrderSummary();
         document.querySelectorAll('.item-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', updateOrderSummary);
+        });
+        // also update summary when quantity inputs change
+        document.querySelectorAll('.qty-input').forEach(qi => {
+            qi.addEventListener('input', updateOrderSummary);
+            qi.addEventListener('change', updateOrderSummary);
         });
     });
     </script>
