@@ -8,7 +8,8 @@ include('../includes/config.php');
 // var_dump($_SESSION);
 ?>
 
-<div class="admin-page">
+<body>
+   <div class="admin-page">
   <div class="admin-card">
     <h2 class="mb-4">Create New Product</h2>
     <form method="POST" action="store.php" enctype="multipart/form-data">
@@ -86,6 +87,3 @@ include('../includes/config.php');
         </form>
   </div>
 </div>
-    <?php
-    include('../includes/footer.php');
-    ?>

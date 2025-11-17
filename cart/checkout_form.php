@@ -4,10 +4,30 @@ require_once __DIR__ . '/../includes/auth.php';
 include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/config.php';
 
-$cart = isset($_SESSION['cart_products']) && is_array($_SESSION['cart_products']) ? $_SESSION['cart_products'] : [];
+// Debug: log what we're receiving
+@file_put_contents(__DIR__ . '/checkout_debug.log', json_encode([
+    'time' => date('c'),
+    'post_selected_items' => isset($_POST['selected_items']) ? $_POST['selected_items'] : 'NOT SET',
+    'post_keys' => array_keys($_POST),
+    'cart_products' => isset($_SESSION['cart_products']) ? array_column($_SESSION['cart_products'], 'item_id') : 'NOT SET'
+]) . PHP_EOL, FILE_APPEND | LOCK_EX);
+
+$all_cart = isset($_SESSION['cart_products']) && is_array($_SESSION['cart_products']) ? $_SESSION['cart_products'] : [];
+
+// Filter cart to only selected items (from POST)
+$selected_ids = isset($_POST['selected_items']) ? array_map('intval', (array)$_POST['selected_items']) : [];
+$cart = [];
+if (!empty($selected_ids)) {
+    foreach ($all_cart as $item) {
+        if (in_array((int)$item['item_id'], $selected_ids)) {
+            $cart[] = $item;
+        }
+    }
+}
+
 if (count($cart) === 0) {
-    $_SESSION['message'] = 'Your cart is empty.';
-    header('Location: /essence_db/index.php');
+    $_SESSION['message'] = 'Please select items to checkout.';
+    header('Location: /essence_db/cart/view_cart.php');
     exit();
 }
 
@@ -69,6 +89,11 @@ if (isset($_SESSION['user_id'])) {
       </ul>
 
       <form method="POST" action="checkout.php">
+        <!-- Pass selected items to checkout.php -->
+        <?php foreach ($selected_ids as $id): ?>
+          <input type="hidden" name="selected_items[]" value="<?php echo $id; ?>">
+        <?php endforeach; ?>
+        
         <h5>Payment Method</h5>
         <div class="mb-3">
           <div class="form-check">

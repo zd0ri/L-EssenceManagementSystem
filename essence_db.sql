@@ -93,26 +93,13 @@ CREATE TABLE payments (
         ON UPDATE CASCADE ON DELETE CASCADE
 );
 
--- 8. EXPENSES TABLE
-CREATE TABLE expenses (
-    expense_id INT AUTO_INCREMENT PRIMARY KEY,
-    expense_type VARCHAR(100) NOT NULL,
-    amount DECIMAL(10,2) NOT NULL,
-    date_recorded DATETIME DEFAULT CURRENT_TIMESTAMP,
-    recorded_by INT,
-    notes TEXT,
-    FOREIGN KEY (recorded_by) REFERENCES users(user_id)
-        ON UPDATE CASCADE ON DELETE SET NULL
-);
 
--- 9. SALES_REPORT TABLE
+
 CREATE TABLE sales_report (
     report_id INT AUTO_INCREMENT PRIMARY KEY,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     total_sales DECIMAL(10,2) NOT NULL,
-    total_expenses DECIMAL(10,2) NOT NULL,
-    net_income DECIMAL(10,2) GENERATED ALWAYS AS (total_sales - total_expenses) STORED,
     generated_by INT,
     date_generated DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (generated_by) REFERENCES users(user_id)

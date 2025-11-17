@@ -19,6 +19,64 @@
     echo '<link href="/essence_db/includes/style/admin.css" rel="stylesheet">' . "\n";
   }
   ?>
+  <style>
+    /* Admin sidebar styles - integrated into page flow so it scrolls with content */
+    .admin-sidebar-shared {
+      position: static;
+      float: left;
+      width: 220px;
+      background: #fff;
+      border-right: 1px solid #dfe6e9;
+      padding: 20px 0;
+      z-index: 1000;
+    }
+
+    body.admin-mode .admin-sidebar-shared .list-group-item {
+      background: transparent;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 0;
+      margin: 0;
+      color: #636e72;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+
+    body.admin-mode .admin-sidebar-shared .list-group-item:hover {
+      background: #f0e9ff;
+      color: #6c5ce7;
+      border-left-color: #6c5ce7;
+    }
+
+    body.admin-mode .admin-sidebar-shared .list-group-item.active {
+      background: #f0e9ff;
+      color: #6c5ce7;
+      border-left-color: #6c5ce7;
+    }
+
+    /* Main content sits beside the sidebar when wide; both scroll together */
+    .admin-main-content {
+      margin-left: 240px;
+      padding: 28px;
+      min-height: calc(100vh - 80px);
+      overflow: visible;
+    }
+
+    @media (max-width: 992px) {
+      .admin-sidebar-shared {
+        float: none;
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #dfe6e9;
+      }
+
+      .admin-main-content {
+        margin-left: 0;
+      }
+    }
+  </style>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
   </script>
@@ -64,11 +122,13 @@
             <a class="nav-link" href="/essence_db/brands.php">Brands</a>
           </li>
           <?php
-          // Show admin dropdown only for admins. For regular users show Profile/My Orders links directly.
-          if (isset($_SESSION['user_id']) && isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
+          // Show admin dropdown only for admins (but NOT on admin pages - sidebar is shown instead)
+          $isAdminPage = strpos($_SERVER['REQUEST_URI'], '/admin/') !== false;
+          if (isset($_SESSION['user_id']) && isset($_SESSION['role']) && $_SESSION['role'] === 'admin' && !$isAdminPage) {
               echo '<li class="nav-item dropdown">';
               echo '<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Admin</a>';
               echo '<ul class="dropdown-menu">';
+              echo "<li><a class='dropdown-item' href='/essence_db/admin/dashboard.php'>Dashboard</a></li>";
               echo "<li><a class='dropdown-item' href='/essence_db/admin/products.php'>Products</a></li>";
               echo "<li><a class='dropdown-item' href='/essence_db/admin/orders.php'>Orders</a></li>";
               echo "<li><a class='dropdown-item' href='/essence_db/admin/users_manage.php'>Customers</a></li>";
@@ -76,8 +136,8 @@
               echo "<li><a class='dropdown-item' href='/essence_db/admin/settings.php'>Settings</a></li>";
               echo '</ul>';
               echo '</li>';
-          } elseif (isset($_SESSION['user_id'])) {
-              // regular logged-in user: show Profile and My Orders as normal nav items
+          } elseif (isset($_SESSION['user_id']) && !$isAdminPage) {
+              // regular logged-in user: show Profile and My Orders as normal nav items (but only on non-admin pages)
               echo '<li class="nav-item"><a class="nav-link" href="/essence_db/users/profile.php">Profile</a></li>';
               echo '<li class="nav-item"><a class="nav-link" href="/essence_db/users/my_orders.php">My Orders</a></li>';
           }
@@ -114,3 +174,4 @@
     </div>
   </nav>
   <?php include_once __DIR__ . '/alert.php'; ?>
+  <?php include_once __DIR__ . '/admin_sidebar.php'; ?>

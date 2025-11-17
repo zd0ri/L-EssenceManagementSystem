@@ -57,6 +57,16 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
                 </div>
             </div>
         </div>
+
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Sales Report</h5>
+                    <p class="card-text small">View sales, expenses, revenue breakdown, and export reports.</p>
+                    <a href="/essence_db/admin/sales_report.php" class="btn btn-primary">View Reports</a>
+                </div>
+            </div>
+        </div>
     </div>
 
     </div>

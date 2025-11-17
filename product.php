@@ -361,7 +361,7 @@ if ($qr) {
   </div>
 
   <hr />
-  <h4>Reviews</h4>
+  <h4 id="reviews">Reviews</h4>
   <?php if (count($reviews) === 0): ?>
     <div class="text-muted">No reviews yet.</div>
   <?php else: ?>

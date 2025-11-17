@@ -1,7 +1,6 @@
 <?php
 session_start();
 require_once __DIR__ . '/../includes/admin_auth.php';
-include __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/config.php';
 
 // ensure brands table
@@ -14,14 +13,14 @@ $create = "CREATE TABLE IF NOT EXISTS brands (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 mysqli_query($conn, $create);
 
-// handle POST actions: create, update, delete
+// handle POST actions: create, update, delete BEFORE including header
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
   $action = $_POST['action'];
   if ($action === 'create' || $action === 'update') {
     $name = trim($_POST['name'] ?? '');
     $desc = trim($_POST['description'] ?? '');
     if ($name === '') {
-      $_SESSION['brand_admin_msg'] = 'Brand name is required.';
+      $_SESSION['message'] = 'Brand name is required.';
       header('Location: brands.php'); exit();
     }
     $imagePath = null;
@@ -45,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         mysqli_stmt_bind_param($stmt, 'sss', $name, $desc, $imagePath);
         mysqli_stmt_execute($stmt);
       }
-      $_SESSION['brand_admin_msg'] = 'Brand created.';
+      $_SESSION['success'] = 'Brand created successfully.';
     } else {
       $id = (int)($_POST['brand_id'] ?? 0);
       // if new image, delete old
@@ -58,24 +57,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         mysqli_stmt_bind_param($stmt, 'sssi', $name, $desc, $imagePath, $id);
         mysqli_stmt_execute($stmt);
       }
-      $_SESSION['brand_admin_msg'] = 'Brand updated.';
+      $_SESSION['success'] = 'Brand updated successfully.';
     }
   } elseif ($action === 'delete') {
     $id = (int)($_POST['brand_id'] ?? 0);
     $old = mysqli_fetch_assoc(mysqli_query($conn, "SELECT image FROM brands WHERE brand_id = {$id} LIMIT 1"));
     if ($old && !empty($old['image'])) { $fp = __DIR__ . '/../' . ltrim($old['image'],'/'); if (file_exists($fp)) @unlink($fp); }
     mysqli_query($conn, "DELETE FROM brands WHERE brand_id = {$id}");
-    $_SESSION['brand_admin_msg'] = 'Brand deleted.';
+    $_SESSION['success'] = 'Brand deleted successfully.';
   }
   header('Location: brands.php'); exit();
 }
+
+// NOW include header after all header() calls are done
+include __DIR__ . '/../includes/header.php';
 
 // load brands
 $brands = [];
 $rb = mysqli_query($conn, "SELECT * FROM brands ORDER BY name ASC");
 if ($rb && mysqli_num_rows($rb) > 0) while ($r = mysqli_fetch_assoc($rb)) $brands[] = $r;
 ?>
-<div class="admin-page">
+<div class="admin-main-content">
   <div class="admin-card">
     <h2>Manage Brands</h2>
     <?php if (isset($_SESSION['brand_admin_msg'])) { echo '<div class="alert alert-info">' . htmlspecialchars($_SESSION['brand_admin_msg']) . '</div>'; unset($_SESSION['brand_admin_msg']); } ?>

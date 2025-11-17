@@ -1,9 +1,8 @@
 <?php
 session_start();
-// require login before any output
+// require login and config before any output
 require_once(__DIR__ . '/../includes/auth.php');
-include('../includes/header.php');
-include('../includes/config.php');
+include(__DIR__ . '/../includes/config.php');
 
 // Checkout: create order, order_items, update inventory, insert payment — all with prepared statements
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -35,12 +34,25 @@ if (!$customer_id) {
 
 // compute total and validate cart
 $total_amount = 0.0;
-$cart = isset($_SESSION['cart_products']) && is_array($_SESSION['cart_products']) ? $_SESSION['cart_products'] : [];
+$all_cart = isset($_SESSION['cart_products']) && is_array($_SESSION['cart_products']) ? $_SESSION['cart_products'] : [];
+
+// Filter to only selected items from POST
+$selected_ids = isset($_POST['selected_items']) ? array_map('intval', (array)$_POST['selected_items']) : [];
+$cart = [];
+if (!empty($selected_ids)) {
+    foreach ($all_cart as $item) {
+        if (in_array((int)$item['item_id'], $selected_ids)) {
+            $cart[] = $item;
+        }
+    }
+}
+
 if (count($cart) === 0) {
-    $_SESSION['message'] = 'Your cart is empty.';
-    header('Location: /essence_db/index.php');
+    $_SESSION['message'] = 'Please select items to checkout.';
+    header('Location: /essence_db/cart/view_cart.php');
     exit();
 }
+
 foreach ($cart as $cart_itm) {
     $total_amount += (float)$cart_itm['item_price'] * (int)$cart_itm['item_qty'];
 }
@@ -51,6 +63,10 @@ $delivery_method = isset($_POST['delivery_method']) ? trim($_POST['delivery_meth
 $remarks = isset($_POST['remarks']) ? trim($_POST['remarks']) : '';
 // decide payment_status based on method
 $payment_status = in_array($payment_method, ['Cash on Delivery']) ? 'unpaid' : 'paid';
+
+// PROCESS CHECKOUT before outputting any HTML
+$checkout_success = false;
+$redirect_url = null;
 
 mysqli_begin_transaction($conn);
 try {
@@ -82,50 +98,71 @@ try {
             $msgs[] = "{$it['product_name']}: requested {$it['requested']}, available {$it['available']}";
         }
         $_SESSION['message'] = 'Insufficient stock for: ' . implode('; ', $msgs);
-        header('Location: /essence_db/cart/view_cart.php');
-        exit();
+        $redirect_url = '/essence_db/cart/view_cart.php';
+    } else {
+        // insert order
+        $status = 'pending';
+
+        $stmt1 = mysqli_prepare($conn, 'INSERT INTO orders (customer_id, total_amount, order_date, status, payment_status, delivery_method, remarks) VALUES (?, ?, NOW(), ?, ?, ?, ?)');
+        mysqli_stmt_bind_param($stmt1, 'idssss', $customer_id, $total_amount, $status, $payment_status, $delivery_method, $remarks);
+        mysqli_stmt_execute($stmt1);
+        $order_id = mysqli_insert_id($conn);
+
+        // prepare order_items and inventory update
+        $stmtItem = mysqli_prepare($conn, 'INSERT INTO order_items (order_id, product_id, quantity, price_each) VALUES (?, ?, ?, ?)');
+        $stmtInv = mysqli_prepare($conn, 'UPDATE inventory SET quantity = quantity - ? WHERE product_id = ?');
+
+        foreach ($cart as $cart_itm) {
+            $product_qty = (int)$cart_itm['item_qty'];
+            $product_id = (int)$cart_itm['item_id'];
+            $price_each = (float)$cart_itm['item_price'];
+
+            mysqli_stmt_bind_param($stmtItem, 'iiid', $order_id, $product_id, $product_qty, $price_each);
+            mysqli_stmt_execute($stmtItem);
+
+            mysqli_stmt_bind_param($stmtInv, 'ii', $product_qty, $product_id);
+            mysqli_stmt_execute($stmtInv);
+        }
+
+        // insert payment record
+        $stmtPay = mysqli_prepare($conn, 'INSERT INTO payments (order_id, payment_method, amount_paid, date_paid, reference_no) VALUES (?, ?, ?, NOW(), ?)');
+        $ref = null;
+        mysqli_stmt_bind_param($stmtPay, 'isds', $order_id, $payment_method, $total_amount, $ref);
+        mysqli_stmt_execute($stmtPay);
+
+        mysqli_commit($conn);
+
+        // Remove only purchased items from cart, keep unselected items
+        if (!empty($_SESSION['cart_products'])) {
+            $remaining_cart = [];
+            foreach ($_SESSION['cart_products'] as $item) {
+                if (!in_array((int)$item['item_id'], $selected_ids)) {
+                    $remaining_cart[] = $item;
+                }
+            }
+            if (count($remaining_cart) > 0) {
+                $_SESSION['cart_products'] = $remaining_cart;
+            } else {
+                unset($_SESSION['cart_products']);
+            }
+        }
+        
+        $_SESSION['success'] = 'Order placed successfully.';
+        $checkout_success = true;
+        $redirect_url = '/essence_db/cart/order_success.php?id=' . $order_id;
     }
-    // insert order
-    $status = 'pending';
-
-    $stmt1 = mysqli_prepare($conn, 'INSERT INTO orders (customer_id, total_amount, order_date, status, payment_status, delivery_method, remarks) VALUES (?, ?, NOW(), ?, ?, ?, ?)');
-    mysqli_stmt_bind_param($stmt1, 'idssss', $customer_id, $total_amount, $status, $payment_status, $delivery_method, $remarks);
-    mysqli_stmt_execute($stmt1);
-    $order_id = mysqli_insert_id($conn);
-
-    // prepare order_items and inventory update
-    $stmtItem = mysqli_prepare($conn, 'INSERT INTO order_items (order_id, product_id, quantity, price_each) VALUES (?, ?, ?, ?)');
-    $stmtInv = mysqli_prepare($conn, 'UPDATE inventory SET quantity = quantity - ? WHERE product_id = ?');
-
-    foreach ($cart as $cart_itm) {
-        $product_qty = (int)$cart_itm['item_qty'];
-        $product_id = (int)$cart_itm['item_id'];
-        $price_each = (float)$cart_itm['item_price'];
-
-        mysqli_stmt_bind_param($stmtItem, 'iiid', $order_id, $product_id, $product_qty, $price_each);
-        mysqli_stmt_execute($stmtItem);
-
-        mysqli_stmt_bind_param($stmtInv, 'ii', $product_qty, $product_id);
-        mysqli_stmt_execute($stmtInv);
-    }
-
-    // insert payment record
-    $stmtPay = mysqli_prepare($conn, 'INSERT INTO payments (order_id, payment_method, amount_paid, date_paid, reference_no) VALUES (?, ?, ?, NOW(), ?)');
-    $ref = null;
-    mysqli_stmt_bind_param($stmtPay, 'isds', $order_id, $payment_method, $total_amount, $ref);
-    mysqli_stmt_execute($stmtPay);
-
-    mysqli_commit($conn);
-
-    // clear cart
-    unset($_SESSION['cart_products']);
-    $_SESSION['success'] = 'Order placed successfully.';
-    // Redirect to order success/receipt page
-    header('Location: /essence_db/cart/order_success.php?id=' . $order_id);
-    exit();
 } catch (Exception $e) {
     mysqli_rollback($conn);
     $_SESSION['message'] = 'Checkout failed: ' . $e->getMessage();
-    header('Location: /essence_db/cart/view_cart.php');
+    $redirect_url = '/essence_db/cart/view_cart.php';
+}
+
+// NOW handle redirect if needed before outputting header
+if ($redirect_url !== null) {
+    header('Location: ' . $redirect_url);
     exit();
 }
+
+// NOW include header (after all redirects/processing)
+include('../includes/header.php');
+?>

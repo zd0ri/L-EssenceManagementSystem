@@ -5,42 +5,18 @@ include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/config.php';
 ?>
 
-<div class="container-fluid admin-shell" style="padding: 28px;">
-  <aside class="admin-sidebar">
-    <div class="admin-card mb-3" style="padding: 16px;">
-      <h5 class="mb-3">Admin</h5>
-      <div class="list-group">
-        <a href="/essence_db/admin/dashboard.php" class="list-group-item list-group-item-action active">
-          <i class="fas fa-chart-line me-2"></i>Dashboard
-        </a>
-        <a href="/essence_db/admin/products.php" class="list-group-item list-group-item-action">
-          <i class="fas fa-box me-2"></i>Products
-        </a>
-        <a href="/essence_db/admin/orders.php" class="list-group-item list-group-item-action">
-          <i class="fas fa-receipt me-2"></i>Orders
-        </a>
-        <a href="/essence_db/admin/users_manage.php" class="list-group-item list-group-item-action">
-          <i class="fas fa-users me-2"></i>Customers
-        </a>
-        <a href="/essence_db/admin/brands.php" class="list-group-item list-group-item-action">
-          <i class="fas fa-tag me-2"></i>Brands
-        </a>
-        <a href="/essence_db/admin/settings.php" class="list-group-item list-group-item-action">
-          <i class="fas fa-cog me-2"></i>Settings
-        </a>
-      </div>
+<div class="admin-main-content">
+  <div class="admin-hero" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px;">
+    <div>
+      <h2>Dashboard</h2>
+      <p style="color: #636e72; font-size: 0.95rem; margin: 6px 0 0 0;">Welcome back! Here's an overview of your shop.</p>
     </div>
-  </aside>
-
-  <main class="admin-main" style="flex: 1;">
-    <div class="admin-hero" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px;">
-      <div>
-        <h2>Dashboard</h2>
-        <p style="color: #636e72; font-size: 0.95rem; margin: 6px 0 0 0;">Welcome back! Here's an overview of your shop.</p>
-      </div>
-      <div>
+      <div style="display:flex; gap:10px;">
         <a href="/essence_db/item/create.php" class="btn btn-primary">
           <i class="fas fa-plus me-2"></i>Add Product
+        </a>
+        <a href="/essence_db/index.php" target="_blank" rel="noopener" class="btn btn-outline-primary">
+          <i class="fas fa-eye me-2"></i>View Site
         </a>
       </div>
     </div>
@@ -63,7 +39,9 @@ include __DIR__ . '/../includes/config.php';
         <div class="admin-card" style="padding: 20px; text-align: center;">
           <h4 style="margin: 0; color: #27ae60;">
             <?php
-            $q = mysqli_query($conn, "SELECT COUNT(*) as cnt FROM orders WHERE status != 'cancelled'");
+            $start_date = date('Y-m-d', strtotime('-30 days'));
+            $end_date = date('Y-m-d');
+            $q = mysqli_query($conn, "SELECT COUNT(*) as cnt FROM orders WHERE payment_status = 'paid' AND order_date BETWEEN '$start_date' AND '$end_date'");
             $r = mysqli_fetch_assoc($q);
             echo $r['cnt'] ?? 0;
             ?>
@@ -87,12 +65,31 @@ include __DIR__ . '/../includes/config.php';
         <div class="admin-card" style="padding: 20px; text-align: center;">
           <h4 style="margin: 0; color: #f39c12;">
             ₱<?php
-            $q = mysqli_query($conn, "SELECT SUM(total_amount) as total FROM orders WHERE status = 'completed'");
+            $start_date = date('Y-m-d', strtotime('-30 days'));
+            $end_date = date('Y-m-d');
+            $q = mysqli_query($conn, "SELECT SUM(total_amount) as total FROM orders WHERE payment_status = 'paid' AND order_date BETWEEN '$start_date' AND '$end_date'");
             $r = mysqli_fetch_assoc($q);
             echo number_format((float)($r['total'] ?? 0), 2);
             ?>
           </h4>
           <p style="color: #636e72; margin: 6px 0 0 0; font-size: 0.9rem;">Revenue</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sales Report Quick Access -->
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="admin-card" style="padding: 20px; background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); color: white;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h5 style="margin: 0; font-weight: 600;">Sales Report</h5>
+              <p style="margin: 6px 0 0 0; opacity: 0.9;">View detailed sales, expenses, and product breakdown</p>
+            </div>
+            <a href="/essence_db/admin/sales_report.php" class="btn btn-light" style="font-weight: 600;">
+              <i class="fas fa-chart-bar me-2"></i>View Report
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -142,19 +139,7 @@ if ($q && mysqli_num_rows($q) > 0) {
         </table>
       </div>
     </div>
-  </main>
+  </div>
 </div>
-
-<style>
-  .admin-shell { display: flex; gap: 24px; padding: 28px; }
-  .admin-sidebar { width: 220px; flex-shrink: 0; }
-  .admin-main { flex: 1; }
-  .admin-card { background: #fff; border: 1px solid #dfe6e9; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-  .table-img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; }
-  @media (max-width: 768px) {
-    .admin-shell { flex-direction: column; }
-    .admin-sidebar { width: 100%; }
-  }
-</style>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

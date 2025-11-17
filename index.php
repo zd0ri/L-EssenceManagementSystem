@@ -43,6 +43,46 @@ include __DIR__ . '/includes/header.php';
   </div>
 </section>
 
+<!-- Featured Brands section (separate block) -->
+<section class="py-5 featured-brands">
+  <div class="container">
+    <h3 class="mb-3 text-center">Featured Brands</h3>
+    <div class="brands-card">
+      <div class="brand-logos">
+      <?php
+      $brandRows = [];
+      mysqli_query($conn, "CREATE TABLE IF NOT EXISTS brands (
+        brand_id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(191) NOT NULL,
+        description TEXT NULL,
+        image VARCHAR(255) NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+      $rb = mysqli_query($conn, "SELECT brand_id, name, image FROM brands ORDER BY name ASC LIMIT 10");
+      if ($rb && mysqli_num_rows($rb) > 0) {
+        while ($br = mysqli_fetch_assoc($rb)) $brandRows[] = $br;
+      }
+      if (count($brandRows) === 0) {
+        // fallback static list
+        $featuredBrands = ['Valentino','Creed','Perfume Dessert','Ian Darcy','Jo Malone', 'Dior', 'Tom Ford', 'Calvin Klein', 'Clinique', 'D&G'];
+        foreach ($featuredBrands as $b) {
+          echo '<a href="/essence_db/brand.php?brand=' . urlencode($b) . '"><img src="" alt="' . htmlspecialchars($b) . '" title="' . htmlspecialchars($b) . '" style="height:48px;object-fit:contain;" onerror="this.style.display=\'none\'" /></a>';
+        }
+      } else {
+        foreach ($brandRows as $br) {
+          if (!empty($br['image'])) {
+            $img = htmlspecialchars('/essence_db/' . ltrim($br['image'], '/'));
+            $url = '/essence_db/brand.php?brand=' . urlencode($br['name']);
+            echo '<a href="' . htmlspecialchars($url) . '"><img src="' . $img . '" alt="' . htmlspecialchars($br['name']) . '" title="' . htmlspecialchars($br['name']) . '" style="height:48px;object-fit:contain;max-width:140px;" /></a>';
+          }
+        }
+      }
+      ?>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="popular-products" class="py-5">
   <div class="container text-center">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -51,42 +91,7 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <!-- Brands preview section (brand-logos strip from DB if available) -->
-    <section class="brands">
-      <div class="container text-center">
-        <h3 class="mb-3">Featured Brands</h3>
-        <div class="brand-logos">
-          <?php
-          $brandRows = [];
-          $q = mysqli_query($conn, "CREATE TABLE IF NOT EXISTS brands (
-            brand_id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(191) NOT NULL,
-            description TEXT NULL,
-            image VARCHAR(255) NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-          $rb = mysqli_query($conn, "SELECT brand_id, name, image FROM brands ORDER BY name ASC LIMIT 10");
-          if ($rb && mysqli_num_rows($rb) > 0) {
-            while ($br = mysqli_fetch_assoc($rb)) $brandRows[] = $br;
-          }
-          if (count($brandRows) === 0) {
-            // fallback to static list if no brands created yet
-            $featuredBrands = ['Valentino','Creed','Perfume Dessert','Ian Darcy','Jo Malone', 'Dior', 'Tom Ford', 'Calvin Klein', 'Clinique', 'D&G'];
-            foreach ($featuredBrands as $b) {
-              echo '<a href="/essence_db/brand.php?brand=' . urlencode($b) . '"><img src="" alt="' . htmlspecialchars($b) . '" title="' . htmlspecialchars($b) . '" style="height:48px;object-fit:contain;" onerror="this.style.display=\'none\'" /></a>';
-            }
-          } else {
-            foreach ($brandRows as $br) {
-              if (!empty($br['image'])) {
-                $img = htmlspecialchars('/essence_db/' . ltrim($br['image'], '/'));
-                $url = '/essence_db/brand.php?brand=' . urlencode($br['name']);
-                echo '<a href="' . htmlspecialchars($url) . '"><img src="' . $img . '" alt="' . htmlspecialchars($br['name']) . '" title="' . htmlspecialchars($br['name']) . '" style="height:48px;object-fit:contain;max-width:140px;" /></a>';
-              }
-            }
-          }
-          ?>
-        </div>
-      </div>
-    </section>
+    <!-- Featured brands moved to its own section below the hero -->
 
     <?php
     $search = '';

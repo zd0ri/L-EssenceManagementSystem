@@ -46,7 +46,7 @@ $res2 = mysqli_stmt_get_result($stmt2);
                 echo '<td>' . htmlspecialchars($row['payment_status']) . '</td>';
                 echo '<td>' . htmlspecialchars($row['status']) . '</td>';
                 echo '<td>';
-                echo "<a class='btn btn-sm btn-outline-primary me-2' href='../admin/orderDetails.php?id=" . (int)$row['order_id'] . "'>View</a>";
+                echo "<a class='btn btn-sm btn-outline-primary me-2' href='order_view.php?id=" . (int)$row['order_id'] . "'>View</a>";
                 // Buy Again form
                 echo "<form method='POST' action='buy_again.php' style='display:inline-block'>";
                 echo "<input type='hidden' name='order_id' value='" . (int)$row['order_id'] . "' />";
