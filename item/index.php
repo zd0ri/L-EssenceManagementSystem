@@ -43,6 +43,7 @@ $itemCount = mysqli_num_rows($result);
         </tr>
       </thead>
       <tbody>
+        <?php
         while ($row = mysqli_fetch_assoc($result)) {
             echo "<tr>";
             $img = htmlspecialchars($row['image'] ?? '');
