@@ -12,7 +12,8 @@ include __DIR__ . '/includes/header.php';
 <section class="hero">
   <div class="hero-inner">
     <div>
-      <h1>The smell is a word. Perfume is literature.</h1>
+      <h1>The smell is a word. </h1>
+        <h1><i>Perfume is literature.</i></h1>
       <p>Discover the beauty of fragrance with our collection of premium perfumes to enrich your everyday scent.</p>
       <div class="hero-cta">
         <a href="#popular-products" class="btn btn-dark btn-lg">Shop Now</a>

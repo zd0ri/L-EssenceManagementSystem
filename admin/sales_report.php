@@ -119,7 +119,6 @@ if ($res4) {
   color: #2C1A11;
 }
 .dashboard-table th, .dashboard-table td {
-<body class="hide-sidebar">
   font-size: 15px;
 }
 .dashboard-table th {
@@ -129,10 +128,20 @@ if ($res4) {
 .dashboard-table td {
   color: #2C1A11;
 }
-
+.hide-sidebar .sidebar, .hide-sidebar #sidebar, .hide-sidebar nav.sidebar {
+  display: none !important;
+}
+.hide-sidebar .container, .hide-sidebar .container-fluid {
+  margin-left: 0 !important;
+}
+.sales-report-main {
+  margin: 0 auto;
+  max-width: 1000px;
+  transition: margin 0.3s;
+}
 </style>
 
-<div class="container py-4">
+<div class="container py-4 sales-report-main">
   <h2 class="mb-4">Sales Report</h2>
   <form method="get" class="row g-3 mb-4">
     <div class="col-auto">
@@ -164,10 +173,6 @@ if ($res4) {
     <!-- Net Income card removed -->
   </div>
 
-  .sales-report-main {
-    margin-left: 20%;
-    transition: margin 0.3s;
-  }
   <div class="dashboard-section">
     <h5>Sales by Product</h5>
     <div class="table-responsive">
@@ -188,7 +193,6 @@ if ($res4) {
               <td><?php echo htmlspecialchars($b['brand_name']); ?></td>
               <td><?php echo htmlspecialchars($b['scent_type']); ?></td>
               <td class="text-end"><?php echo (int)$b['qty_sold']; ?></td>
-</body>
               <td class="text-end">₱<?php echo number_format((float)$b['revenue'],2); ?></td>
             </tr>
           <?php endforeach; ?>
