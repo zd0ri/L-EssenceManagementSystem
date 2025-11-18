@@ -2,7 +2,7 @@
 session_start();
 // require admin before sending any output
 require_once(__DIR__ . '/../includes/admin_auth.php');
-include('../includes/adminHeader.php');
+include('../includes/header.php');
 include('../includes/config.php');
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {

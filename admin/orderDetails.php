@@ -43,10 +43,10 @@ $items = mysqli_query($conn, $sql);
 <?php endif; ?>
 <table class="table table-striped table-bordered admin-table">
     <thead>
-        <th>item name</th>
-        <th>quantity</th>
-        <th>price</th>
-        <th>total</th>
+        <th>Item Name</th>
+        <th>Quantity</th>
+        <th>Price</th>
+        <th>Total</th>
     </thead>
 
     <?php
@@ -81,11 +81,11 @@ $items = mysqli_query($conn, $sql);
 <?php endif; ?>
 <form action="updateorder.php" method="POST">
 <select class="form-select form-control" aria-label="Order status" name="status">
-    <option value="pending" <?= ($customer['status'] == 'pending') ? 'selected' : '' ?>>pending</option>
-    <option value="processing" <?= ($customer['status'] == 'processing') ? 'selected' : '' ?>>processing</option>
-    <option value="shipped" <?= ($customer['status'] == 'shipped') ? 'selected' : '' ?>>shipped</option>
-    <option value="completed" <?= ($customer['status'] == 'completed') ? 'selected' : '' ?>>completed</option>
-    <option value="cancelled" <?= ($customer['status'] == 'cancelled') ? 'selected' : '' ?>>cancelled</option>
+    <option style="color: #5A4939" value="pending" <?= ($customer['status'] == 'pending') ? 'selected' : '' ?>>Pending</option>
+    <option style="color: #5A4939" value="processing" <?= ($customer['status'] == 'processing') ? 'selected' : '' ?>>Processing</option>
+    <option style="color: #5A4939" value="shipped" <?= ($customer['status'] == 'shipped') ? 'selected' : '' ?>>Shipped</option>
+    <option style="color: #5A4939" value="completed" <?= ($customer['status'] == 'completed') ? 'selected' : '' ?>>Completed</option>
+    <option style="color: #5A4939" value="cancelled" <?= ($customer['status'] == 'cancelled') ? 'selected' : '' ?>>Cancelled</option>
 </select>
 <button type="submit" class="btn btn-primary">update order</button>
 </form>

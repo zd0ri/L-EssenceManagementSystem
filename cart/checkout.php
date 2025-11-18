@@ -109,8 +109,9 @@ try {
         $order_id = mysqli_insert_id($conn);
 
         // prepare order_items and inventory update
-        $stmtItem = mysqli_prepare($conn, 'INSERT INTO order_items (order_id, product_id, quantity, price_each) VALUES (?, ?, ?, ?)');
-        $stmtInv = mysqli_prepare($conn, 'UPDATE inventory SET quantity = quantity - ? WHERE product_id = ?');
+    $stmtItem = mysqli_prepare($conn, 'INSERT INTO order_items (order_id, product_id, quantity, price_each) VALUES (?, ?, ?, ?)');
+    // Inventory deduction is deferred until the order is shipped. This prevents premature stock reduction.
+    // $stmtInv = mysqli_prepare($conn, 'UPDATE inventory SET quantity = quantity - ? WHERE product_id = ?');
 
         foreach ($cart as $cart_itm) {
             $product_qty = (int)$cart_itm['item_qty'];
@@ -120,8 +121,8 @@ try {
             mysqli_stmt_bind_param($stmtItem, 'iiid', $order_id, $product_id, $product_qty, $price_each);
             mysqli_stmt_execute($stmtItem);
 
-            mysqli_stmt_bind_param($stmtInv, 'ii', $product_qty, $product_id);
-            mysqli_stmt_execute($stmtInv);
+            // Do NOT deduct inventory now. Inventory will be deducted when admin marks the order as 'shipped'.
+            // This keeps items available for other customers until the seller ships them.
         }
 
         // insert payment record

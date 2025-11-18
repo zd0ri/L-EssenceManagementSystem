@@ -106,7 +106,6 @@ include('../includes/config.php');
                             <h5 class="card-title">Order Summary</h5>
                             <div class="d-flex justify-content-between"><div>Selected Items</div><div><span id="selected-count">0</span> items</div></div>
                             <div class="d-flex justify-content-between mt-2"><div>Subtotal</div><div>₱<span id="selected-subtotal">0.00</span></div></div>
-                            <div class="d-flex justify-content-between mt-2"><div>Discount</div><div>-₱0.00</div></div>
                             <div class="d-flex justify-content-between mt-2"><div>Shipping</div><div>₱0.00</div></div>
                             <hr />
                             <div class="d-flex justify-content-between"><strong>Total</strong><strong>₱<span id="selected-total">0.00</span></strong></div>

@@ -37,7 +37,7 @@
       padding: 12px 20px;
       border-radius: 0;
       margin: 0;
-      color: #636e72;
+      color: #5A4939;
       font-weight: 500;
       transition: all 0.2s ease;
       cursor: pointer;
@@ -46,14 +46,14 @@
 
     body.admin-mode .admin-sidebar-shared .list-group-item:hover {
       background: #f0e9ff;
-      color: #6c5ce7;
-      border-left-color: #6c5ce7;
+      color: #5A4939;
+      border-left-color: #5A4939;
     }
 
     body.admin-mode .admin-sidebar-shared .list-group-item.active {
       background: #f0e9ff;
-      color: #6c5ce7;
-      border-left-color: #6c5ce7;
+      color: #5A4939;;
+      border-left-color: #5A4939;
     }
 
     /* Main content sits beside the sidebar when wide; both scroll together */
@@ -78,7 +78,7 @@
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
+    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous" >
   </script>
   <title>Shop</title>
   <script>
@@ -92,7 +92,7 @@
 </head>
 
 <body>
-  <nav class="navbar navbar-expand-lg">
+  <nav class="navbar navbar-expand-lg" >
     <div class="container-fluid">
       <a class="navbar-brand" href="#">L'Essence</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -101,7 +101,7 @@
         <span class="navbar-toggler-icon"></span>
       </button>
 
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <div class="collapse navbar-collapse" id="navbarSupportedContent" style="color #white">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <?php
           // Show Dashboard for admins, Home for regular users

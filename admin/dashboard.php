@@ -8,8 +8,8 @@ include __DIR__ . '/../includes/config.php';
 <div class="admin-main-content">
   <div class="admin-hero" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px;">
     <div>
-      <h2>Dashboard</h2>
-      <p style="color: #636e72; font-size: 0.95rem; margin: 6px 0 0 0;">Welcome back! Here's an overview of your shop.</p>
+      <h2 style="color: #5A4939">Dashboard</h2>
+      <p style="color: #5A4939; font-size: 0.95rem; margin: 6px 0 0 0;">Welcome back! Here's an overview of your shop.</p>
     </div>
       <div style="display:flex; gap:10px;">
         <a href="/essence_db/item/create.php" class="btn btn-primary">
@@ -25,19 +25,19 @@ include __DIR__ . '/../includes/config.php';
     <div class="row mb-4">
       <div class="col-md-3">
         <div class="admin-card" style="padding: 20px; text-align: center;">
-          <h4 style="margin: 0; color: #6c5ce7;">
+          <h4 style="margin: 0; color: #5A4939;">
             <?php
             $q = mysqli_query($conn, "SELECT COUNT(*) as cnt FROM products WHERE status = 'available'");
             $r = mysqli_fetch_assoc($q);
             echo $r['cnt'] ?? 0;
             ?>
           </h4>
-          <p style="color: #636e72; margin: 6px 0 0 0; font-size: 0.9rem;">Active Products</p>
+          <p style="color: #5A4939; margin: 6px 0 0 0; font-size: 0.9rem;">Active Products</p>
         </div>
       </div>
       <div class="col-md-3">
         <div class="admin-card" style="padding: 20px; text-align: center;">
-          <h4 style="margin: 0; color: #27ae60;">
+          <h4 style="margin: 0; color: #5A4939;">
             <?php
             $start_date = date('Y-m-d', strtotime('-30 days'));
             $end_date = date('Y-m-d');
@@ -46,24 +46,24 @@ include __DIR__ . '/../includes/config.php';
             echo $r['cnt'] ?? 0;
             ?>
           </h4>
-          <p style="color: #636e72; margin: 6px 0 0 0; font-size: 0.9rem;">Total Orders</p>
+          <p style="color: #5A4939; margin: 6px 0 0 0; font-size: 0.9rem;">Total Orders</p>
         </div>
       </div>
       <div class="col-md-3">
         <div class="admin-card" style="padding: 20px; text-align: center;">
-          <h4 style="margin: 0; color: #e74c3c;">
+          <h4 style="margin: 0; color: rgb(109, 96, 83);">
             <?php
             $q = mysqli_query($conn, "SELECT COUNT(*) as cnt FROM customers");
             $r = mysqli_fetch_assoc($q);
             echo $r['cnt'] ?? 0;
             ?>
           </h4>
-          <p style="color: #636e72; margin: 6px 0 0 0; font-size: 0.9rem;">Total Customers</p>
+          <p style="color: #5A4939; margin: 6px 0 0 0; font-size: 0.9rem;">Total Customers</p>
         </div>
       </div>
       <div class="col-md-3">
         <div class="admin-card" style="padding: 20px; text-align: center;">
-          <h4 style="margin: 0; color: #f39c12;">
+          <h4 style="margin: 0; color: rgb(109, 96, 83);">
             ₱<?php
             $start_date = date('Y-m-d', strtotime('-30 days'));
             $end_date = date('Y-m-d');
@@ -72,7 +72,7 @@ include __DIR__ . '/../includes/config.php';
             echo number_format((float)($r['total'] ?? 0), 2);
             ?>
           </h4>
-          <p style="color: #636e72; margin: 6px 0 0 0; font-size: 0.9rem;">Revenue</p>
+          <p style="color: #5A4939; margin: 6px 0 0 0; font-size: 0.9rem;">Revenue</p>
         </div>
       </div>
     </div>
@@ -80,10 +80,10 @@ include __DIR__ . '/../includes/config.php';
     <!-- Sales Report Quick Access -->
     <div class="row mb-4">
       <div class="col-md-12">
-        <div class="admin-card" style="padding: 20px; background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); color: white;">
+        <div class="admin-card" style="padding: 20px; background: linear-gradient(180deg, #5A4939 0%, #2C1A11 100%); color: white;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <h5 style="margin: 0; font-weight: 600;">Sales Report</h5>
+              <h5 style="margin: 0; font-weight: 600; color: #CFBB9F;">Sales Report</h5>
               <p style="margin: 6px 0 0 0; opacity: 0.9;">View detailed sales, expenses, and product breakdown</p>
             </div>
             <a href="/essence_db/admin/sales_report.php" class="btn btn-light" style="font-weight: 600;">
@@ -97,8 +97,8 @@ include __DIR__ . '/../includes/config.php';
     <!-- Recent Products -->
     <div class="admin-card">
       <div class="admin-hero" style="display: flex; justify-content: space-between; align-items: center; margin: 0; padding: 20px; border-bottom: 1px solid #dfe6e9;">
-        <h5 style="margin: 0;">Recent Products</h5>
-        <a href="/essence_db/admin/products.php" class="btn btn-sm btn-outline-secondary">View All</a>
+        <h5 style="margin: 0;color: #5A4939">Recent Products</h5>
+        <a href="/essence_db/admin/products.php" class="btn btn-sm btn-outline-secondary" style="color: #47392cff; background-color: #CFBB9F;">View All</a>
       </div>
       <div class="table-responsive" style="padding: 20px;">
         <table class="table">
@@ -123,7 +123,7 @@ if ($q && mysqli_num_rows($q) > 0) {
     $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
     $imgUrl = preg_match('#^https?://#i', $p) ? $p : $baseUrl . ltrim($p,'/');
     echo "<tr>";
-    echo "<td style='width: 72px;'><img src='" . htmlspecialchars($imgUrl) . "' class='table-img' onerror=\"this.src='/essence_db/images/placeholder.png'\" style='width: 72px; height: 72px; object-fit: cover; border-radius: 8px;'></td>";
+    echo "<td style='width: 72px;'><img src='" . htmlspecialchars($imgUrl) . "' class='table-img' onerror=\"this.src='/essence_db/images/placeholder.png'\" style='width: 72px; height: 72px; object-fit: cover; border-radius: 8px; font-color: #2C1A11;'></td>";
     echo "<td>" . htmlspecialchars($r['brand_name']) . "</td>";
     echo "<td>" . htmlspecialchars($r['brand_name']) . "</td>";
     echo "<td>₱" . number_format((float)$r['price'],2) . "</td>";

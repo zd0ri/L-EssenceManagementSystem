@@ -1,7 +1,9 @@
 <?php
 session_start();
 include("../includes/config.php");
-include("../includes/header.php");
+// This is a POST-only handler. Do not include the shared header here because
+// it sends output and will prevent header() redirects from working.
+// include("../includes/header.php");
 
 // server-side validation
 $email_raw = isset($_POST['email']) ? trim($_POST['email']) : '';

@@ -22,25 +22,30 @@ if (isset($_POST['submit'])) {
         } else {
                 $email = strtolower($email_raw);
                 $pass = sha1($password_raw);
-                $sql = "SELECT user_id, email, role FROM users WHERE email=? AND password=? LIMIT 1";
+                $sql = "SELECT user_id, email, role, status FROM users WHERE email=? AND password=? LIMIT 1";
                 $stmt = mysqli_prepare($conn, $sql);
                 if ($stmt) {
                         mysqli_stmt_bind_param($stmt, 'ss', $email, $pass);
                         mysqli_stmt_execute($stmt);
                         mysqli_stmt_store_result($stmt);
-                        mysqli_stmt_bind_result($stmt, $user_id, $db_email, $role);
+                        mysqli_stmt_bind_result($stmt, $user_id, $db_email, $role, $account_status);
                         if (mysqli_stmt_num_rows($stmt) === 1) {
                                 mysqli_stmt_fetch($stmt);
-                                $_SESSION['email'] = $db_email;
-                                $_SESSION['user_id'] = $user_id;
-                                $_SESSION['role'] = $role;
-                                // Redirect admins to dashboard, regular users to home
-                                if ($role === 'admin') {
-                                        header("Location: ../admin/dashboard.php");
+                                // Check if account is deactivated
+                                if ($account_status === 'inactive') {
+                                        $_SESSION['message'] = 'Your account has been deactivated. Please contact support for assistance: <a href="mailto:support@lessenthera@gmail.com">lessenthera@gmail.com</a>.';
                                 } else {
-                                        header("Location: ../index.php");
+                                        $_SESSION['email'] = $db_email;
+                                        $_SESSION['user_id'] = $user_id;
+                                        $_SESSION['role'] = $role;
+                                        // Redirect admins to dashboard, regular users to home
+                                        if ($role === 'admin') {
+                                                header("Location: ../admin/dashboard.php");
+                                        } else {
+                                                header("Location: ../index.php");
+                                        }
+                                        exit();
                                 }
-                                exit();
                         } else {
                                 $_SESSION['message'] = 'Wrong email or password';
                         }

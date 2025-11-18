@@ -44,6 +44,16 @@ $resItems = mysqli_stmt_get_result($q);
 <div class="container py-4">
   <h2>Order #<?php echo (int)$order['order_id']; ?></h2>
   <p class="text-muted">Placed on <?php echo htmlspecialchars($order['order_date']); ?> — Status: <?php echo htmlspecialchars(ucfirst($order['status'])); ?></p>
+  <?php
+    // Allow customer to cancel the order if it's still pending or processing
+    $canCancel = in_array($order['status'], ['pending','processing']);
+    if ($canCancel):
+  ?>
+    <form method="POST" action="/essence_db/users/cancel_order.php" onsubmit="return confirm('Are you sure you want to cancel this order?');" style="display:inline-block;margin-bottom:8px;">
+      <input type="hidden" name="order_id" value="<?php echo (int)$order['order_id']; ?>">
+      <button type="submit" class="btn btn-sm btn-danger">Cancel Order</button>
+    </form>
+  <?php endif; ?>
   <div class="row">
     <div class="col-md-8">
       <div class="card mb-3"><div class="card-body">

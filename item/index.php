@@ -2,7 +2,7 @@
 session_start();
 // require admin before output to ensure redirects work
 require_once(__DIR__ . '/../includes/admin_auth.php');
-include('../includes/adminHeader.php');
+include('../includes/header.php');
 include('../includes/config.php');
 
 // if (!isset($_SESSION['user_id'])) {

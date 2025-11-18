@@ -20,7 +20,7 @@ $itemCount = $result ? mysqli_num_rows($result) : 0;
 ?>
 <div class="admin-page">
     <div class="admin-card">
-        <h2>Number of orders: <?= $itemCount ?></h2>
+        <h2 style="color: #5A4939">Number of Orders: <?= $itemCount ?></h2>
         <?php include("../includes/alert.php"); ?>
         <table class="table table-striped table-bordered admin-table">
     <?php

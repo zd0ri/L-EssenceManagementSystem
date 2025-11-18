@@ -1,15 +1,15 @@
 /* Admin Theme — Modern & Professional */
 :root {
-  --admin-primary: #6c5ce7;
-  --admin-primary-dark: #5f3dc4;
-  --admin-secondary: #a29bfe;
+  --admin-primary: #2C1A11;
+  --admin-primary-dark: #2C1A11;
+  --admin-secondary: #5A4939;
   --admin-bg: #f8f9fa;
-  --admin-card: #ffffff;
-  --admin-text: #2d3436;
-  --admin-text-light: #636e72;
+  --admin-card: #fffbf4;
+  --admin-text: #5A4939;
+  --admin-text-light: rgb(109, 96, 83);
   --admin-border: #dfe6e9;
-  --admin-success: #27ae60;
-  --admin-danger: #e74c3c;
+  --admin-success: rgb(109, 96, 83);
+  --admin-danger: #5A4939;
 }
 
 /* Admin-mode navbar (compact topbar) */
@@ -109,14 +109,14 @@ body.admin-mode .navbar .btn-outline-primary {
 }
 
 body.admin-mode .navbar .btn-outline-primary:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: #5A4939;
   border-color: rgba(255, 255, 255, 0.6);
   color: #fff;
 }
 
 body.admin-mode .navbar .btn-outline-danger {
-  color: #ff6b6b;
-  border: 1px solid #ff6b6b;
+  color: #7b5a49;
+  border: 1px solid rgb(109, 96, 83);
   background: transparent;
   border-radius: 6px;
   padding: 6px 14px;
@@ -125,8 +125,8 @@ body.admin-mode .navbar .btn-outline-danger {
 }
 
 body.admin-mode .navbar .btn-outline-danger:hover {
-  background: #ff6b6b;
-  color: #fff;
+  background: #fff6f1;
+  color: #3a2f1f;
 }
 
 /* Admin background & page body */
@@ -195,7 +195,7 @@ body.admin-mode .btn-dark {
 body.admin-mode .btn-primary:hover,
 body.admin-mode .btn-dark:hover {
   background: var(--admin-primary-dark);
-  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+  box-shadow: 0 4px 12px #FAF3E3;
 }
 
 body.admin-mode .btn-outline-secondary {
@@ -209,7 +209,7 @@ body.admin-mode .btn-outline-secondary {
 
 body.admin-mode .btn-outline-secondary:hover {
   background: var(--admin-primary);
-  color: #fff;
+  color: rgb(109, 96, 83);
   border-color: var(--admin-primary);
 }
 
@@ -222,7 +222,7 @@ body.admin-mode .btn-danger {
 }
 
 body.admin-mode .btn-danger:hover {
-  background: #c0392b;
+  background: #2C1A11;
 }
 
 /* Admin sidebar */
@@ -294,7 +294,7 @@ body.admin-mode .form-select {
 body.admin-mode .form-control:focus,
 body.admin-mode .form-select:focus {
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+  box-shadow: 0 0 0 3px #FAF3E3;
 }
 
 /* Admin badges */
