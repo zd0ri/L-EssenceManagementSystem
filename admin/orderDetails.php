@@ -15,7 +15,7 @@ $sql = "SELECT o.order_id, o.status, o.remarks, o.delivery_method, o.payment_sta
 $result = mysqli_query($conn, $sql);
 $customer = mysqli_fetch_assoc($result);
 
-$sql = "SELECT p.brand_name AS description, oi.quantity, oi.price_each AS sell_price, COALESCE((SELECT path FROM product_images WHERE product_id = oi.product_id ORDER BY product_image_id ASC LIMIT 1), p.image) AS image_path FROM order_items oi INNER JOIN products p ON oi.product_id = p.product_id WHERE oi.order_id = {$orderId}";
+$sql = "SELECT p.product_name, b.name as brand_name, oi.quantity, oi.price_each AS sell_price, COALESCE((SELECT path FROM product_images WHERE product_id = oi.product_id ORDER BY product_image_id ASC LIMIT 1), p.image) AS image_path FROM order_items oi INNER JOIN products p ON oi.product_id = p.product_id LEFT JOIN brands b ON p.brand_id = b.brand_id WHERE oi.order_id = {$orderId}";
 $items = mysqli_query($conn, $sql);
 
 ?>
@@ -65,7 +65,7 @@ $items = mysqli_query($conn, $sql);
             $imgHtml = '<img src="' . htmlspecialchars($imgUrl) . '" style="width:64px;height:64px;object-fit:cover;border-radius:6px;margin-right:8px;">';
         }
 
-        echo "<td>" . $imgHtml . htmlspecialchars($row['description']) . "</td>";
+        echo "<td>" . $imgHtml . htmlspecialchars($row['product_name']) . " (" . htmlspecialchars($row['brand_name'] ?? '') . ")</td>";
         echo "<td>" . (int)$row['quantity'] . "</td>";
         echo "<td>₱" . number_format((float)$row['sell_price'],2) . "</td>";
 

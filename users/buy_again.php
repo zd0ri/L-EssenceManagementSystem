@@ -29,7 +29,7 @@ if (!$res || mysqli_num_rows($res) === 0) {
 
 // fetch order items
 $items = [];
-$si = mysqli_prepare($conn, 'SELECT oi.product_id, oi.quantity, oi.price_each, p.brand_name FROM order_items oi LEFT JOIN products p ON oi.product_id = p.product_id WHERE oi.order_id = ?');
+$si = mysqli_prepare($conn, 'SELECT oi.product_id, oi.quantity, oi.price_each, p.product_name, b.name as brand_name FROM order_items oi LEFT JOIN products p ON oi.product_id = p.product_id LEFT JOIN brands b ON p.brand_id = b.brand_id WHERE oi.order_id = ?');
 mysqli_stmt_bind_param($si, 'i', $order_id);
 mysqli_stmt_execute($si);
 $rsi = mysqli_stmt_get_result($si);
@@ -59,12 +59,12 @@ foreach ($items as $it) {
     if ($rci && ($rr = mysqli_fetch_assoc($rci))) $avail = (int)$rr['quantity'];
 
     // fetch product info (price, name)
-    $pstmt = mysqli_prepare($conn, 'SELECT brand_name, price, image FROM products WHERE product_id = ? LIMIT 1');
+    $pstmt = mysqli_prepare($conn, 'SELECT product_name, price, image FROM products WHERE product_id = ? LIMIT 1');
     mysqli_stmt_bind_param($pstmt, 'i', $pid);
     mysqli_stmt_execute($pstmt);
     $pres = mysqli_stmt_get_result($pstmt);
     $prow = $pres ? mysqli_fetch_assoc($pres) : null;
-    $name = $prow['brand_name'] ?? ('Product ' . $pid);
+    $name = $prow['product_name'] ?? ('Product ' . $pid);
     $price = isset($prow['price']) ? (float)$prow['price'] : (float)$it['price_each'];
 
     $existingQty = isset($_SESSION['cart_products'][$pid]) ? (int)$_SESSION['cart_products'][$pid]['item_qty'] : 0;

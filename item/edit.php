@@ -21,7 +21,8 @@ if (!$res || mysqli_num_rows($res) === 0) {
 }
 $row = mysqli_fetch_assoc($res);
 
-$brand = $row['brand_name'] ?? '';
+$brand_id = $row['brand_id'] ?? '';
+$product_name = $row['product_name'] ?? '';
 $scent = $row['scent_type'] ?? '';
 $size = $row['size'] ?? '';
 $price = $row['price'] ?? '';
@@ -36,8 +37,27 @@ $image = $row['image'] ?? '';
     <form method="POST" action="update.php" enctype="multipart/form-data">
         <input type="hidden" name="product_id" value="<?php echo (int)$id; ?>">
         <div class="form-group mb-2">
-            <label>Brand name</label>
-            <input class="form-control" type="text" name="brand_name" value="<?php echo htmlspecialchars($brand); ?>">
+            <label>Brand</label>
+            <?php
+            // Load brands for select box
+            $brandsForSelect = [];
+            $qb = mysqli_query($conn, "SELECT brand_id, name FROM brands ORDER BY name ASC");
+            if ($qb && mysqli_num_rows($qb) > 0) {
+                while ($br = mysqli_fetch_assoc($qb)) $brandsForSelect[] = $br;
+            }
+            ?>
+            <select class="form-control form-select" name="brand_id" required>
+                <option value="">-- Select a Brand --</option>
+                <?php foreach ($brandsForSelect as $b): ?>
+                    <option value="<?php echo htmlspecialchars($b['brand_id']); ?>" <?php if ($brand_id == $b['brand_id']) echo 'selected'; ?>>
+                        <?php echo htmlspecialchars($b['name']); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="form-group mb-2">
+            <label>Product Name</label>
+            <input class="form-control" type="text" name="product_name" value="<?php echo htmlspecialchars($product_name); ?>" required>
         </div>
         <div class="form-group mb-2">
             <label>Scent / short desc</label>

@@ -100,16 +100,17 @@ include __DIR__ . '/includes/header.php';
     if (isset($_GET['search']) && trim($_GET['search']) !== '') {
       $search = trim($_GET['search']);
       $searchEsc = mysqli_real_escape_string($conn, strtolower($search));
-      $whereExtra = " AND (LOWER(p.brand_name) LIKE '%{$searchEsc}%' OR LOWER(p.scent_type) LIKE '%{$searchEsc}%' OR LOWER(p.description) LIKE '%{$searchEsc}%')";
+      $whereExtra = " AND (LOWER(p.product_name) LIKE '%{$searchEsc}%' OR LOWER(p.scent_type) LIKE '%{$searchEsc}%' OR LOWER(p.description) LIKE '%{$searchEsc}%' OR LOWER(b.name) LIKE '%{$searchEsc}%')";
       echo '<div class="search-result">Showing results for <strong>' . htmlspecialchars($search) . '</strong></div>';
     }
 
     // show best-selling products first (based on order_items), fall back to product id
     if (trim($whereExtra) === '') {
       // show only products that have been sold
-      $sql = "SELECT p.product_id AS productId, p.brand_name, p.scent_type AS scent_type, p.price, p.image, i.quantity,
+      $sql = "SELECT p.product_id AS productId, p.product_name, b.name as brand_name, p.scent_type AS scent_type, p.price, p.image, i.quantity,
       COALESCE(SUM(oi.quantity),0) AS sales_count
     FROM products p
+    LEFT JOIN brands b ON p.brand_id = b.brand_id
     LEFT JOIN order_items oi ON p.product_id = oi.product_id
     INNER JOIN inventory i ON p.product_id = i.product_id
     WHERE i.quantity > 0 AND p.status = 'available'
@@ -118,9 +119,10 @@ include __DIR__ . '/includes/header.php';
     ORDER BY sales_count DESC, p.product_id ASC";
     } else {
       // when searching, include items regardless of sales
-      $sql = "SELECT p.product_id AS productId, p.brand_name, p.scent_type AS scent_type, p.price, p.image, i.quantity,
+      $sql = "SELECT p.product_id AS productId, p.product_name, b.name as brand_name, p.scent_type AS scent_type, p.price, p.image, i.quantity,
       COALESCE(SUM(oi.quantity),0) AS sales_count
     FROM products p
+    LEFT JOIN brands b ON p.brand_id = b.brand_id
     LEFT JOIN order_items oi ON p.product_id = oi.product_id
     INNER JOIN inventory i ON p.product_id = i.product_id
     WHERE i.quantity > 0 AND p.status = 'available' " . $whereExtra . "

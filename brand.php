@@ -3,30 +3,74 @@ session_start();
 require_once __DIR__ . '/includes/config.php';
 include __DIR__ . '/includes/header.php';
 
-$brand = isset($_GET['brand']) ? trim($_GET['brand']) : '';
-if ($brand === '') {
-    echo '<div class="container py-4"><div class="alert alert-danger">Brand not specified.</div></div>';
-    include __DIR__ . '/includes/footer.php';
-    exit();
-}
+// Support both id (brand_id) and brand (brand_name) for backward compatibility
+$brand_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$brand_name = isset($_GET['brand']) ? trim($_GET['brand']) : '';
+$brand_display = '';
 
 // fetch products for brand
 $products = [];
-$sql = "SELECT p.product_id AS productId, p.brand_name, p.scent_type AS scent_type, p.price, p.image, i.quantity,
-  COALESCE(SUM(oi.quantity),0) AS sales_count
-  FROM products p
-  LEFT JOIN order_items oi ON p.product_id = oi.product_id
-  INNER JOIN inventory i ON p.product_id = i.product_id
-  WHERE i.quantity > 0 AND p.status = 'available' AND LOWER(p.brand_name) = LOWER(?)
-  GROUP BY p.product_id
-  ORDER BY sales_count DESC, p.product_id ASC";
-if ($stmt = mysqli_prepare($conn, $sql)) {
-    mysqli_stmt_bind_param($stmt, 's', $brand);
-    mysqli_stmt_execute($stmt);
-    $res = mysqli_stmt_get_result($stmt);
-    if ($res) {
-        while ($row = mysqli_fetch_assoc($res)) $products[] = $row;
+
+if ($brand_id > 0) {
+    // Query by brand_id (preferred)
+    $sql = "SELECT p.product_id AS productId, p.product_name, b.name as brand_name, p.scent_type AS scent_type, p.price, p.image, i.quantity,
+      COALESCE(SUM(oi.quantity),0) AS sales_count
+      FROM products p
+      LEFT JOIN brands b ON p.brand_id = b.brand_id
+      LEFT JOIN order_items oi ON p.product_id = oi.product_id
+      INNER JOIN inventory i ON p.product_id = i.product_id
+      WHERE i.quantity > 0 AND p.status = 'available' AND p.brand_id = ?
+      GROUP BY p.product_id
+      ORDER BY sales_count DESC, p.product_id ASC";
+    if ($stmt = mysqli_prepare($conn, $sql)) {
+        mysqli_stmt_bind_param($stmt, 'i', $brand_id);
+        mysqli_stmt_execute($stmt);
+        $res = mysqli_stmt_get_result($stmt);
+        if ($res) {
+            while ($row = mysqli_fetch_assoc($res)) {
+                $products[] = $row;
+                if ($brand_display === '') $brand_display = $row['brand_name'];
+            }
+        }
     }
+    // If no products found, fetch brand name from brands table
+    if ($brand_display === '') {
+        $bq = mysqli_prepare($conn, "SELECT name FROM brands WHERE brand_id = ? LIMIT 1");
+        if ($bq) {
+            mysqli_stmt_bind_param($bq, 'i', $brand_id);
+            mysqli_stmt_execute($bq);
+            $br = mysqli_stmt_get_result($bq);
+            $bf = $br ? mysqli_fetch_assoc($br) : null;
+            if ($bf) $brand_display = $bf['name'];
+        }
+    }
+} elseif ($brand_name !== '') {
+    // Query by brand_name (backward compatibility) - find brand_id first
+    $sql = "SELECT p.product_id AS productId, p.product_name, b.name as brand_name, p.scent_type AS scent_type, p.price, p.image, i.quantity,
+      COALESCE(SUM(oi.quantity),0) AS sales_count
+      FROM products p
+      LEFT JOIN brands b ON p.brand_id = b.brand_id
+      LEFT JOIN order_items oi ON p.product_id = oi.product_id
+      INNER JOIN inventory i ON p.product_id = i.product_id
+      WHERE i.quantity > 0 AND p.status = 'available' AND LOWER(b.name) = LOWER(?)
+      GROUP BY p.product_id
+      ORDER BY sales_count DESC, p.product_id ASC";
+    if ($stmt = mysqli_prepare($conn, $sql)) {
+        mysqli_stmt_bind_param($stmt, 's', $brand_name);
+        mysqli_stmt_execute($stmt);
+        $res = mysqli_stmt_get_result($stmt);
+        if ($res) {
+            while ($row = mysqli_fetch_assoc($res)) {
+                $products[] = $row;
+                if ($brand_display === '') $brand_display = $row['brand_name'];
+            }
+        }
+    }
+    if ($brand_display === '') $brand_display = $brand_name;
+} else {
+    echo '<div class="container py-4"><div class="alert alert-danger">Brand not specified.</div></div>';
+    include __DIR__ . '/includes/footer.php';
+    exit();
 }
 
 // baseUrl for images
@@ -35,7 +79,7 @@ $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
 ?>
 
 <div class="container py-4">
-  <h2>Brand: <?php echo htmlspecialchars($brand); ?></h2>
+  <h2>Brand: <?php echo htmlspecialchars($brand_display); ?></h2>
   <?php if (count($products) === 0): ?>
     <div class="alert alert-info">No available products found for this brand.</div>
   <?php else: ?>

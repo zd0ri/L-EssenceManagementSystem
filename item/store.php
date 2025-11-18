@@ -5,7 +5,8 @@ require_once(__DIR__ . '/../includes/admin_auth.php');
 include('../includes/config.php');
 
 // store form inputs temporarily
-$_SESSION['brand'] = trim($_POST['brand_name']);
+$_SESSION['brand_id'] = trim($_POST['brand_id']);
+$_SESSION['product_name'] = trim($_POST['product_name']);
 $_SESSION['scent'] = trim($_POST['scent_type']);
 $_SESSION['size'] = trim($_POST['size']);
 $_SESSION['price'] = trim($_POST['price']);
@@ -13,7 +14,8 @@ $_SESSION['desc'] = trim($_POST['description']);
 $_SESSION['qty'] = $_POST['quantity'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $brand = trim($_POST['brand_name']);
+    $brand_id = trim($_POST['brand_id']);
+    $product_name = trim($_POST['product_name']);
     $scent = trim($_POST['scent_type']);
     $size = trim($_POST['size']);
     $price = trim($_POST['price']);
@@ -32,8 +34,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // --- Validation ---
-    if (empty($brand)) {
-        $_SESSION['brandError'] = 'Please enter brand name.';
+    if (empty($brand_id)) {
+        $_SESSION['brandError'] = 'Please select a brand.';
+        header("Location: create.php");
+        exit();
+    }
+
+    if (empty($product_name)) {
+        $_SESSION['productNameError'] = 'Please enter product name.';
         header("Location: create.php");
         exit();
     }
@@ -63,8 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // --- Insert into products table ---
     $sql = "
-        INSERT INTO products (brand_name, scent_type, size, price, description, image, status)
-        VALUES ('{$brand}', '{$scent}', '{$size}', '{$price}', '{$desc}', '{$target}', 'available')
+        INSERT INTO products (brand_id, product_name, scent_type, size, price, description, image, status)
+        VALUES ({$brand_id}, '" . mysqli_real_escape_string($conn, $product_name) . "', '" . mysqli_real_escape_string($conn, $scent) . "', '" . mysqli_real_escape_string($conn, $size) . "', '{$price}', '" . mysqli_real_escape_string($conn, $desc) . "', '{$target}', 'available')
     ";
 
     $result = mysqli_query($conn, $sql);
@@ -165,13 +173,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // clear temporary session form values
-        unset($_SESSION['brand'], $_SESSION['scent'], $_SESSION['size'], $_SESSION['price'], $_SESSION['desc'], $_SESSION['qty']);
+        unset($_SESSION['brand_id'], $_SESSION['product_name'], $_SESSION['scent'], $_SESSION['size'], $_SESSION['price'], $_SESSION['desc'], $_SESSION['qty']);
 
         // Redirect to admin items list so admin can continue managing products
         $redirect = 'index.php';
         if (isset($_POST['return']) && $_POST['return'] === 'dashboard') {
             // absolute path to admin dashboard
-            $redirect = '/essence_db/admin/index.php';
+            $redirect = '/essence_db/admin/dashboard.php';
         }
         header("Location: " . $redirect);
         exit();

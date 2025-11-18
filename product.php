@@ -218,7 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
 }
 
 // fetch product
-$product_q = mysqli_prepare($conn, "SELECT p.*, i.quantity FROM products p LEFT JOIN inventory i ON p.product_id = i.product_id WHERE p.product_id = ? LIMIT 1");
+$product_q = mysqli_prepare($conn, "SELECT p.*, b.name as brand_name, i.quantity FROM products p LEFT JOIN brands b ON p.brand_id = b.brand_id LEFT JOIN inventory i ON p.product_id = i.product_id WHERE p.product_id = ? LIMIT 1");
 if ($product_q) {
     mysqli_stmt_bind_param($product_q, 'i', $id);
     mysqli_stmt_execute($product_q);
@@ -292,8 +292,8 @@ include __DIR__ . '/includes/header.php';
       <?php endif; ?>
     </div>
     <div class="col-md-6">
-      <h2><?php echo htmlspecialchars($product['brand_name']); ?></h2>
-      <p class="text-muted"><?php echo htmlspecialchars($product['description']); ?></p>
+      <h2><?php echo htmlspecialchars($product['product_name']); ?></h2>
+      <p class="text-muted"><strong><?php echo htmlspecialchars($product['brand_name']); ?></strong> - <?php echo htmlspecialchars($product['description']); ?></p>
       <p class="fw-bold">₱<?php echo number_format($product['price'],2); ?></p>
       <p>Available: <?php echo (int)$product['quantity']; ?></p>
 

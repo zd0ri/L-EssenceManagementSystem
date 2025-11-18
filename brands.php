@@ -20,17 +20,27 @@ include __DIR__ . '/includes/header.php';
     $rb = mysqli_query($conn, "SELECT brand_id, name, image FROM brands ORDER BY name ASC");
     if ($rb && mysqli_num_rows($rb) > 0) {
       while ($r = mysqli_fetch_assoc($rb)) {
-        $url = '/essence_db/brand.php?brand=' . urlencode($r['name']);
+        $url = '/essence_db/brand.php?id=' . (int)$r['brand_id'];
         $img = '';
         if (!empty($r['image'])) $img = '<img src="' . htmlspecialchars('/essence_db/' . ltrim($r['image'], '/')) . '" style="height:28px;object-fit:contain;margin-right:8px;">';
         echo '<a href="' . htmlspecialchars($url) . '" class="list-group-item list-group-item-action">' . $img . htmlspecialchars($r['name']) . '</a>';
       }
     } else {
-      // fallback static list
-      $brands = ['Valentino','Creed','Perfume Dessert','Ian Darcy','Jo Malone'];
-      foreach ($brands as $b) {
-        $url = '/essence_db/brand.php?brand=' . urlencode($b);
-        echo '<a href="' . htmlspecialchars($url) . '" class="list-group-item list-group-item-action">' . htmlspecialchars($b) . '</a>';
+      // fallback: fetch from products table distinct brand names
+      $fallback = mysqli_query($conn, "SELECT DISTINCT brand_name FROM products WHERE brand_name IS NOT NULL AND brand_name != '' ORDER BY brand_name ASC LIMIT 50");
+      if ($fallback && mysqli_num_rows($fallback) > 0) {
+        while ($f = mysqli_fetch_assoc($fallback)) {
+          $b = htmlspecialchars($f['brand_name']);
+          $url = '/essence_db/brand.php?brand=' . urlencode($f['brand_name']);
+          echo '<a href="' . htmlspecialchars($url) . '" class="list-group-item list-group-item-action">' . $b . '</a>';
+        }
+      } else {
+        // last resort static list
+        $brands = ['Valentino','Creed','Perfume Dessert','Ian Darcy','Jo Malone'];
+        foreach ($brands as $b) {
+          $url = '/essence_db/brand.php?brand=' . urlencode($b);
+          echo '<a href="' . htmlspecialchars($url) . '" class="list-group-item list-group-item-action">' . htmlspecialchars($b) . '</a>';
+        }
       }
     }
     ?>

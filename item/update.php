@@ -10,7 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $product_id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
-$brand = trim($_POST['brand_name'] ?? '');
+$brand_id = isset($_POST['brand_id']) ? (int)$_POST['brand_id'] : 0;
+$product_name = trim($_POST['product_name'] ?? '');
 $scent = trim($_POST['scent_type'] ?? '');
 $size = trim($_POST['size'] ?? '');
 $price = trim($_POST['price'] ?? '');
@@ -23,7 +24,7 @@ if ($product_id <= 0) {
     exit();
 }
 
-if ($brand === '' || $price === '' || !is_numeric($price)) {
+if ($brand_id <= 0 || $product_name === '' || $price === '' || !is_numeric($price)) {
     $_SESSION['message'] = 'Invalid product data.';
     header('Location: edit.php?id=' . $product_id);
     exit();
@@ -127,13 +128,13 @@ if (isset($_FILES['images']) && is_array($_FILES['images']['name'])) {
 }
 
 // update products
-$brand_esc = mysqli_real_escape_string($conn, $brand);
+$product_name_esc = mysqli_real_escape_string($conn, $product_name);
 $scent_esc = mysqli_real_escape_string($conn, $scent);
 $size_esc = mysqli_real_escape_string($conn, $size);
 $price_esc = mysqli_real_escape_string($conn, $price);
 $desc_esc = mysqli_real_escape_string($conn, $desc);
 
-$sql = "UPDATE products SET brand_name='{$brand_esc}', scent_type='{$scent_esc}', size='{$size_esc}', price='{$price_esc}', description='{$desc_esc}'";
+$sql = "UPDATE products SET brand_id={$brand_id}, product_name='{$product_name_esc}', scent_type='{$scent_esc}', size='{$size_esc}', price='{$price_esc}', description='{$desc_esc}'";
 if ($target !== null) {
     $target_esc = mysqli_real_escape_string($conn, $target);
     $sql .= ", image='{$target_esc}'";
@@ -160,7 +161,7 @@ $_SESSION['success'] = 'Product updated.';
 // support "Save & Return to Dashboard" from create/edit forms
 $redirect = 'index.php';
 if (isset($_POST['return']) && $_POST['return'] === 'dashboard') {
-    $redirect = '/essence_db/admin/index.php';
+    $redirect = '/essence_db/admin/dashboard.php';
 }
 header('Location: ' . $redirect);
 exit();

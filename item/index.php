@@ -18,10 +18,10 @@ if (isset($_GET['search'])) {
 }
 
 if ($keyword !== '') {
-    $sql = "SELECT p.*, i.quantity FROM products p LEFT JOIN inventory i ON p.product_id = i.product_id WHERE LOWER(p.brand_name) LIKE '%" . $keyword . "%' OR LOWER(p.description) LIKE '%" . $keyword . "%'";
+    $sql = "SELECT p.*, b.name as brand_name, i.quantity FROM products p LEFT JOIN brands b ON p.brand_id = b.brand_id LEFT JOIN inventory i ON p.product_id = i.product_id WHERE LOWER(p.product_name) LIKE '%" . $keyword . "%' OR LOWER(p.description) LIKE '%" . $keyword . "%' OR LOWER(b.name) LIKE '%" . $keyword . "%'";
     $result = mysqli_query($conn, $sql);
 } else {
-    $sql = "SELECT p.*, i.quantity FROM products p LEFT JOIN inventory i ON p.product_id = i.product_id";
+    $sql = "SELECT p.*, b.name as brand_name, i.quantity FROM products p LEFT JOIN brands b ON p.brand_id = b.brand_id LEFT JOIN inventory i ON p.product_id = i.product_id";
     $result = mysqli_query($conn, $sql);
 }
 
@@ -39,7 +39,7 @@ $itemCount = mysqli_num_rows($result);
     <table class="table table-striped table-bordered admin-table">
       <thead>
         <tr>
-          <th>Image</th><th>ID</th><th>Brand</th><th>Description</th><th>Price</th><th>Qty</th><th>Actions</th>
+          <th>Image</th><th>ID</th><th>Product Name</th><th>Brand</th><th>Description</th><th>Price</th><th>Qty</th><th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -125,6 +125,7 @@ $itemCount = mysqli_num_rows($result);
                 echo "<td><div style='width:150px;height:150px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;color:#888'>No image</div></td>";
             }
             echo "<td>{$row['product_id']}</td>";
+            echo "<td>" . htmlspecialchars($row['product_name'] ?? '') . "</td>";
             echo "<td>" . htmlspecialchars($row['brand_name'] ?? '') . "</td>";
             echo "<td>" . htmlspecialchars($row['description'] ?? '') . "</td>";
             echo "<td>" . htmlspecialchars($row['price'] ?? '') . "</td>";

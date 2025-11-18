@@ -36,10 +36,10 @@ $itemCount = $result ? mysqli_num_rows($result) : 0;
         echo "<td style='color: {$color}'>" . htmlspecialchars(ucfirst($row['status'])) . "</td>";
         echo "<td>" . htmlspecialchars($row['order_date']) . "</td>";
 
-        // actions: view details and change status (form)
+        // actions: view details, change status (form), and delete
         echo "<td>";
         echo "<a href='orderDetails.php?id={$row['order_id']}' class='btn btn-sm btn-outline-primary me-2'>View</a>";
-        echo "<form method='POST' action='update_order_status.php' style='display:inline-block'>";
+        echo "<form method='POST' action='update_order_status.php' style='display:inline-block; margin-right:6px;'>";
         echo "<input type='hidden' name='order_id' value='" . (int)$row['order_id'] . "' />";
         echo "<select name='status' class='form-select form-select-sm d-inline-block' style='width:140px; display:inline-block; margin-right:6px;'>";
         $statuses = ['pending','processing','shipped','completed','cancelled'];
@@ -49,6 +49,12 @@ $itemCount = $result ? mysqli_num_rows($result) : 0;
         }
         echo "</select>";
         echo "<button type='submit' class='btn btn-sm btn-success'>Save</button>";
+        echo "</form>";
+
+        // Delete form (separate POST) - includes JS confirm
+        echo "<form method='POST' action='order_delete.php' style='display:inline-block' onsubmit=\"return confirm('Delete this order? This cannot be undone.');\">";
+        echo "<input type='hidden' name='order_id' value='" . (int)$row['order_id'] . "' />";
+        echo "<button type='submit' class='btn btn-sm btn-danger'>Delete</button>";
         echo "</form>";
         echo "</td>";
         echo "</tr>";

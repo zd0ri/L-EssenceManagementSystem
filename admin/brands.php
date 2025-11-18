@@ -66,10 +66,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     mysqli_query($conn, "DELETE FROM brands WHERE brand_id = {$id}");
     $_SESSION['success'] = 'Brand deleted successfully.';
   }
-  // allow optional return to dashboard: pass return=dashboard in GET/POST to redirect back to admin index
+  // allow optional return to dashboard: pass return=dashboard in GET/POST to redirect back to admin dashboard
   $redirect = 'brands.php';
   if ((isset($_REQUEST['return']) && $_REQUEST['return'] === 'dashboard') || (isset($_POST['return']) && $_POST['return'] === 'dashboard')) {
-    $redirect = 'index.php';
+    $redirect = '/essence_db/admin/dashboard.php';
   }
   header('Location: ' . $redirect); exit();
 }
@@ -86,7 +86,7 @@ if ($rb && mysqli_num_rows($rb) > 0) while ($r = mysqli_fetch_assoc($rb)) $brand
   <div class="admin-card">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
       <h2 style="margin:0">Manage Brands</h2>
-      <a href="/essence_db/admin/index.php" class="btn btn-outline-secondary">&larr; Dashboard</a>
+      <a href="/essence_db/admin/dashboard.php" class="btn btn-outline-secondary">&larr; Dashboard</a>
     </div>
     <?php if (isset($_SESSION['brand_admin_msg'])) { echo '<div class="alert alert-info">' . htmlspecialchars($_SESSION['brand_admin_msg']) . '</div>'; unset($_SESSION['brand_admin_msg']); } ?>
     <div class="row">

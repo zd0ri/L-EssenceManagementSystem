@@ -104,8 +104,9 @@ if (isset($_POST['submit'])) {
                 <?php
                 // load a few product images for the carousel
                 $carouselImages = [];
-                $q = "SELECT COALESCE(pi.path, p.image) AS img_path, p.brand_name, p.scent_type
+                $q = "SELECT COALESCE(pi.path, p.image) AS img_path, p.product_name, b.name as brand_name, p.scent_type
                       FROM products p
+                      LEFT JOIN brands b ON p.brand_id = b.brand_id
                       LEFT JOIN product_images pi ON p.product_id = pi.product_id
                       WHERE p.status = 'available' AND (pi.path IS NOT NULL OR p.image IS NOT NULL)
                       GROUP BY COALESCE(pi.path, p.image)

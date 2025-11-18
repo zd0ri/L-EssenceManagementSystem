@@ -35,7 +35,7 @@ if ($customer_id !== (int)$order['customer_id']) {
 }
 
 // fetch order items
-$q = mysqli_prepare($conn, 'SELECT oi.*, p.brand_name, COALESCE((SELECT path FROM product_images WHERE product_id = p.product_id ORDER BY product_image_id ASC LIMIT 1), p.image) AS image_path FROM order_items oi JOIN products p ON oi.product_id = p.product_id WHERE oi.order_id = ?');
+$q = mysqli_prepare($conn, 'SELECT oi.*, p.product_name, b.name as brand_name, COALESCE((SELECT path FROM product_images WHERE product_id = p.product_id ORDER BY product_image_id ASC LIMIT 1), p.image) AS image_path FROM order_items oi JOIN products p ON oi.product_id = p.product_id LEFT JOIN brands b ON p.brand_id = b.brand_id WHERE oi.order_id = ?');
 mysqli_stmt_bind_param($q, 'i', $order_id);
 mysqli_stmt_execute($q);
 $resItems = mysqli_stmt_get_result($q);

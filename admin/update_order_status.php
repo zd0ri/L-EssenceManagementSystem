@@ -131,7 +131,7 @@ if ($stmt) {
             if ($ord && !empty($ord['email'])) {
                 // fetch order items
                 $items = [];
-                $si = mysqli_prepare($conn, 'SELECT oi.product_id, oi.quantity, oi.price_each, p.brand_name FROM order_items oi LEFT JOIN products p ON oi.product_id = p.product_id WHERE oi.order_id = ?');
+                $si = mysqli_prepare($conn, 'SELECT oi.product_id, oi.quantity, oi.price_each, p.product_name, b.name as brand_name FROM order_items oi LEFT JOIN products p ON oi.product_id = p.product_id LEFT JOIN brands b ON p.brand_id = b.brand_id WHERE oi.order_id = ?');
                 if ($si) {
                     mysqli_stmt_bind_param($si, 'i', $order_id);
                     mysqli_stmt_execute($si);
@@ -156,7 +156,8 @@ if ($stmt) {
                 foreach ($items as $it) {
                     $sub = (float)$it['quantity'] * (float)$it['price_each'];
                     $grand += $sub;
-                    $html .= "<tr><td style='padding:8px;border-bottom:1px solid #f1f1f1'>" . htmlspecialchars($it['brand_name']) . "</td><td style='padding:8px;border-bottom:1px solid #f1f1f1;text-align:right'>" . (int)$it['quantity'] . "</td><td style='padding:8px;border-bottom:1px solid #f1f1f1;text-align:right'>₱" . number_format((float)$it['price_each'],2) . "</td><td style='padding:8px;border-bottom:1px solid #f1f1f1;text-align:right'>₱" . number_format($sub,2) . "</td></tr>";
+                    $productDisplay = htmlspecialchars($it['product_name']) . (isset($it['brand_name']) && !empty($it['brand_name']) ? ' (' . htmlspecialchars($it['brand_name']) . ')' : '');
+                    $html .= "<tr><td style='padding:8px;border-bottom:1px solid #f1f1f1'>" . $productDisplay . "</td><td style='padding:8px;border-bottom:1px solid #f1f1f1;text-align:right'>" . (int)$it['quantity'] . "</td><td style='padding:8px;border-bottom:1px solid #f1f1f1;text-align:right'>₱" . number_format((float)$it['price_each'],2) . "</td><td style='padding:8px;border-bottom:1px solid #f1f1f1;text-align:right'>₱" . number_format($sub,2) . "</td></tr>";
                 }
                 $html .= "<tr><td colspan='3' style='padding:8px;text-align:right'><strong>Total</strong></td><td style='padding:8px;text-align:right'><strong>₱" . number_format($grand,2) . "</strong></td></tr>";
                 $html .= "</table>";

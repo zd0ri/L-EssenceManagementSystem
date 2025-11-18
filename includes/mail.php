@@ -7,14 +7,18 @@ function smtp_send_mail($toEmail, $toName, $subject, $htmlBody) {
     // SSL (port 465) and STARTTLS (port 587). Works with Mailtrap SMTP inbox.
     $host = defined('MAIL_HOST') ? MAIL_HOST : null;
     $port = defined('MAIL_PORT') ? MAIL_PORT : 2525;
+    // Use configured MAIL_USERNAME / MAIL_PASSWORD from includes/config.php when available
     $user = defined('MAIL_USERNAME') ? MAIL_USERNAME : null;
     $pass = defined('MAIL_PASSWORD') ? MAIL_PASSWORD : null;
     $from = defined('MAIL_FROM_ADDRESS') ? MAIL_FROM_ADDRESS : 'no-reply@example.com';
-    $fromName = defined('MAIL_FROM_NAME') ? MAIL_FROM_NAME : 'Website';
+    // Use double quotes here to allow an apostrophe in the default display name
+    $fromName = defined('MAIL_FROM_NAME') ? MAIL_FROM_NAME : "L'Essence";
     $useTls = defined('MAIL_USE_TLS') ? MAIL_USE_TLS : false;
 
+    error_log("smtp_send_mail: Attempting to send email to {$toEmail} via {$host}:{$port}");
+
     if (!$host || !$user || !$pass) {
-        error_log('smtp_send_mail: SMTP not configured (MAIL_HOST/MAIL_USERNAME/MAIL_PASSWORD)');
+        error_log('smtp_send_mail: SMTP not configured (MAIL_HOST=' . ($host ? 'OK' : 'MISSING') . ', MAIL_USERNAME=' . ($user ? 'OK' : 'MISSING') . ', MAIL_PASSWORD=' . ($pass ? 'OK' : 'MISSING') . ')');
         return false;
     }
 
@@ -26,7 +30,8 @@ function smtp_send_mail($toEmail, $toName, $subject, $htmlBody) {
 
     $socket = @stream_socket_client($target, $errno, $errstr, 15);
     if (!$socket) {
-        error_log("smtp_send_mail: connection to {$target} failed: {$errno} {$errstr}");
+        error_log("smtp_send_mail: connection to {$target} failed: [{$errno}] {$errstr}");
+        error_log("smtp_send_mail: Please verify Mailtrap credentials and network access");
         return false;
     }
 
@@ -145,10 +150,21 @@ function smtp_send_mail($toEmail, $toName, $subject, $htmlBody) {
     $message .= '--' . $boundary . "\r\n";
     $message .= 'Content-Type: text/html; charset="utf-8"' . "\r\n\r\n";
     $message .= $htmlBody . "\r\n\r\n";
-    $message .= '--' . $boundary . '--' . "\r\n.";
+    $message .= '--' . $boundary . '--' . "\r\n";
 
-    // send data lines and end with CRLF.CRLF
-    $write($message);
+    // Send message - each line needs special handling to avoid dot-stuffing issues
+    $lines = explode("\r\n", $message);
+    foreach ($lines as $line) {
+        // In SMTP DATA mode, lines starting with dot must be doubled
+        if (strlen($line) > 0 && $line[0] === '.') {
+            $line = '.' . $line;
+        }
+        fwrite($socket, $line . "\r\n");
+    }
+    // Send final dot on its own line
+    fwrite($socket, ".\r\n");
+    $debug[] = "C: <DATA COMPLETE>";
+    
     $resp = $read();
     if (substr($resp,0,3) !== '250') {
         error_log('smtp_send_mail: message not accepted: ' . trim($resp));
@@ -161,6 +177,7 @@ function smtp_send_mail($toEmail, $toName, $subject, $htmlBody) {
     $write('QUIT');
     $read();
     fclose($socket);
+    error_log("smtp_send_mail: Email successfully sent to {$toEmail}");
     return true;
 }
 ?>
