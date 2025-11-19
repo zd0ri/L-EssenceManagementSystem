@@ -1,18 +1,11 @@
 <?php
 session_start();
-// require admin before output to ensure redirects work
 require_once(__DIR__ . '/../includes/admin_auth.php');
 include('../includes/header.php');
 include('../includes/config.php');
 
-// if (!isset($_SESSION['user_id'])) {
-//     $_SESSION['message'] = "please Login to access the page";
-//     header("Location: ../user/login.php" );
-// }
-// echo $_GET['search'];
 $keyword = '';
 if (isset($_GET['search'])) {
-    // escape input
     $raw = mysqli_real_escape_string($conn, trim($_GET['search']));
     $keyword = strtolower($raw);
 }
@@ -47,7 +40,7 @@ $itemCount = mysqli_num_rows($result);
         while ($row = mysqli_fetch_assoc($result)) {
             echo "<tr>";
             $img = htmlspecialchars($row['image'] ?? '');
-            // collect product images (multiple) and render a small carousel per product
+            
             $pid = (int)$row['product_id'];
             $imgsPaths = [];
             $qpi = mysqli_query($conn, "SELECT path FROM product_images WHERE product_id = {$pid} ORDER BY product_image_id ASC");
@@ -56,17 +49,15 @@ $itemCount = mysqli_num_rows($result);
                     $imgsPaths[] = $rpi['path'];
                 }
             }
-            // fallback to legacy single image
+            
             if (empty($imgsPaths) && !empty($row['image'])) {
                 $imgsPaths[] = $row['image'];
             }
 
             if (count($imgsPaths) > 0) {
-                // build absolute base url
                 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
                 $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
                 if (count($imgsPaths) === 1) {
-                    // single image: render as a simple img (no carousel)
                     $p = str_replace('\\', '/', $imgsPaths[0]);
                     if (preg_match('#^https?://#i', $p)) {
                         $imgUrl = $p;
@@ -81,7 +72,6 @@ $itemCount = mysqli_num_rows($result);
                         echo "<td><div style='width:150px;height:150px;background:#f8d7da;color:#842029;display:flex;align-items:center;justify-content:center;'>Missing image</div></td>";
                     }
                 } else {
-                    // multiple images: render carousel
                     $carouselId = 'prodCarousel_' . $pid;
                     echo "<td style='width:170px'>";
                     echo "<div id='$carouselId' class='carousel slide' data-bs-ride='carousel'>";
@@ -90,10 +80,10 @@ $itemCount = mysqli_num_rows($result);
                         $active = $i === 0 ? 'class="active" aria-current="true"' : '';
                         echo "<button type='button' data-bs-target='#{$carouselId}' data-bs-slide-to='{$i}' {$active} aria-label='Slide " . ($i+1) . "'></button>";
                     }
-                    echo "</div>"; // indicators
+                    echo "</div>"; 
                     echo "<div class='carousel-inner'>";
                     foreach ($imgsPaths as $i => $p) {
-                        // normalize and build url
+                        
                         $p = str_replace('\\', '/', $p);
                         if (preg_match('#^https?://#i', $p)) {
                             $imgUrl = $p;
@@ -111,14 +101,14 @@ $itemCount = mysqli_num_rows($result);
                         }
                         echo "</div>";
                     }
-                    echo "</div>"; // inner
+                    echo "</div>";
                     echo "<button class='carousel-control-prev' type='button' data-bs-target='#{$carouselId}' data-bs-slide='prev'>";
                     echo "<span class='carousel-control-prev-icon' aria-hidden='true'></span><span class='visually-hidden'>Previous</span>";
                     echo "</button>";
                     echo "<button class='carousel-control-next' type='button' data-bs-target='#{$carouselId}' data-bs-slide='next'>";
                     echo "<span class='carousel-control-next-icon' aria-hidden='true'></span><span class='visually-hidden'>Next</span>";
                     echo "</button>";
-                    echo "</div>"; // carousel
+                    echo "</div>";
                     echo "</td>";
                 }
             } else {

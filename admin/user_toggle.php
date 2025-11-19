@@ -17,7 +17,6 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $id = (int)$_GET['id'];
 
-// prevent admin from toggling themselves
 if ($id === (int)$_SESSION['user_id']) {
     $_SESSION['message'] = 'You cannot change your own status.';
     header('Location: users.php');
@@ -32,7 +31,8 @@ if (!$q || mysqli_num_rows($q) === 0) {
 }
 $r = mysqli_fetch_assoc($q);
 $new = ($r['status'] === 'active') ? 'inactive' : 'active';
-// If deactivating an admin, ensure at least one active admin remains
+
+//ensure at least one active admin remains
 $roleQ = mysqli_query($conn, "SELECT role FROM users WHERE user_id = {$id} LIMIT 1");
 $roleRow = $roleQ ? mysqli_fetch_assoc($roleQ) : null;
 if ($new === 'inactive' && $roleRow && ($roleRow['role'] === 'admin')) {

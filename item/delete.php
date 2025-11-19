@@ -1,6 +1,5 @@
 <?php
 session_start();
-// require admin before sending output
 require_once(__DIR__ . '/../includes/admin_auth.php');
 include('../includes/config.php');
 
@@ -12,7 +11,6 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $id = (int)$_GET['id'];
 
-// fetch product to remove image file
 $q = mysqli_query($conn, "SELECT image FROM products WHERE product_id = {$id} LIMIT 1");
 if ($q && mysqli_num_rows($q) > 0) {
 	$row = mysqli_fetch_assoc($q);
@@ -21,8 +19,6 @@ if ($q && mysqli_num_rows($q) > 0) {
 		@unlink(__DIR__ . '/' . $img);
 	}
 }
-
-// remove inventory then product
 mysqli_query($conn, "DELETE FROM inventory WHERE product_id = {$id}");
 mysqli_query($conn, "DELETE FROM products WHERE product_id = {$id}");
 

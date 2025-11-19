@@ -15,7 +15,7 @@ if ($order_id <= 0) {
     exit();
 }
 
-// Optional: prevent deleting shipped/completed orders
+// prevent deleting shipped/completed orders
 $check = mysqli_prepare($conn, 'SELECT status FROM orders WHERE order_id = ? LIMIT 1');
 if ($check) {
     mysqli_stmt_bind_param($check, 'i', $order_id);
@@ -29,13 +29,12 @@ if ($check) {
     }
 }
 
-// Delete the order (order_items and payments are expected to cascade if FKs exist)
 $del = mysqli_prepare($conn, 'DELETE FROM orders WHERE order_id = ?');
 if ($del) {
     mysqli_stmt_bind_param($del, 'i', $order_id);
     if (mysqli_stmt_execute($del)) {
         $_SESSION['success'] = 'Order deleted.';
-        // log activity if activity_log exists
+        
         if (function_exists('error_log')) {
             error_log('Admin ' . ($_SESSION['user_id'] ?? 'unknown') . ' deleted order ' . $order_id);
         }

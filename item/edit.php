@@ -1,6 +1,5 @@
 <?php
 session_start();
-// require admin before sending any output
 require_once(__DIR__ . '/../includes/admin_auth.php');
 include('../includes/header.php');
 include('../includes/config.php');
@@ -39,7 +38,6 @@ $image = $row['image'] ?? '';
         <div class="form-group mb-2">
             <label>Brand</label>
             <?php
-            // Load brands for select box
             $brandsForSelect = [];
             $qb = mysqli_query($conn, "SELECT brand_id, name FROM brands ORDER BY name ASC");
             if ($qb && mysqli_num_rows($qb) > 0) {
@@ -82,7 +80,6 @@ $image = $row['image'] ?? '';
                 <div class="form-group mb-2">
                         <label>Current Images</label><br />
                         <?php
-                        // fetch product images
                         $imgs = [];
                         $qi = mysqli_query($conn, "SELECT product_image_id, path FROM product_images WHERE product_id = {$id} ORDER BY product_image_id ASC");
                         if ($qi) {
@@ -102,15 +99,12 @@ $image = $row['image'] ?? '';
                                     <div class="carousel-inner">
                                                         <?php foreach ($imgs as $i => $im):
                                                               $rawPath = $im['path'];
-                                                              // normalize slashes stored in DB
                                                               $rawPath = str_replace('\\', '/', $rawPath);
-                                                              // build absolute base url
                                                               $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
                                                               $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
-                                                              // convert stored path (uploads/...) to absolute URL
                                                               if (preg_match('#^https?://#i', $rawPath)) {
                                                                   $urlPath = $rawPath;
-                                                                  $fileExists = true; // assume remote URL exists
+                                                                  $fileExists = true;
                                                               } else {
                                                                   $urlPath = $baseUrl . ltrim($rawPath, '/');
                                                                   $fileExists = file_exists(__DIR__ . '/../' . ltrim($rawPath, '/'));
@@ -139,7 +133,6 @@ $image = $row['image'] ?? '';
                                     </button>
                                 </div>
                         <?php
-                        // also show direct links below for quick verification
                         echo '<div class="mt-2">';
                         foreach ($imgs as $im) {
                             $rawPath2 = $im['path'];

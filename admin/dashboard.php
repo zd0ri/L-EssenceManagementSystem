@@ -39,7 +39,7 @@ include __DIR__ . '/../includes/config.php';
         <div class="admin-card" style="padding: 20px; text-align: center;">
           <h4 style="margin: 0; color: #5A4939;">
             <?php
-            // Show orders in the last 30 days, excluding refunded orders
+            
             $start_date = date('Y-m-d', strtotime('-30 days'));
             $end_date = date('Y-m-d');
             $q = mysqli_query($conn, "SELECT COUNT(*) as cnt FROM orders WHERE payment_status != 'refunded' AND DATE(order_date) BETWEEN '$start_date' AND '$end_date'");
@@ -66,7 +66,7 @@ include __DIR__ . '/../includes/config.php';
         <div class="admin-card" style="padding: 20px; text-align: center;">
           <h4 style="margin: 0; color: rgb(109, 96, 83);">
             ₱<?php
-            // Revenue for the last 30 days (only paid orders). Use DATE(order_date) for inclusive day range
+
             $start_date = date('Y-m-d', strtotime('-30 days'));
             $end_date = date('Y-m-d');
             $q = mysqli_query($conn, "SELECT SUM(total_amount) as total FROM orders WHERE payment_status = 'paid' AND DATE(order_date) BETWEEN '$start_date' AND '$end_date'");
@@ -78,8 +78,7 @@ include __DIR__ . '/../includes/config.php';
         </div>
       </div>
     </div>
-
-    <!-- Sales Report Quick Access -->
+    
     <div class="row mb-4">
       <div class="col-md-12">
         <div class="admin-card" style="padding: 20px; background: linear-gradient(180deg, #5A4939 0%, #2C1A11 100%); color: white;">
@@ -96,7 +95,7 @@ include __DIR__ . '/../includes/config.php';
       </div>
     </div>
 
-    <!-- Recent Products -->
+    
     <div class="admin-card">
       <div class="admin-hero" style="display: flex; justify-content: space-between; align-items: center; margin: 0; padding: 20px; border-bottom: 1px solid #dfe6e9;">
         <h5 style="margin: 0;color: #5A4939">Recent Products</h5>
@@ -116,7 +115,7 @@ include __DIR__ . '/../includes/config.php';
           </thead>
           <tbody>
 <?php
-// Select product_name and join brands table for correct brand display. Fall back to legacy p.brand_name if needed.
+
 $q = mysqli_query($conn, "SELECT p.product_id, COALESCE(p.product_name, p.brand_name, '') AS product_name, COALESCE(b.name, p.brand_name, '') AS brand_name, p.price, i.quantity, COALESCE((SELECT path FROM product_images WHERE product_id = p.product_id ORDER BY product_image_id ASC LIMIT 1), p.image) AS image_path FROM products p LEFT JOIN brands b ON p.brand_id = b.brand_id INNER JOIN inventory i ON p.product_id = i.product_id WHERE p.status = 'available' ORDER BY p.product_id DESC LIMIT 8");
 if ($q && mysqli_num_rows($q) > 0) {
   while ($r = mysqli_fetch_assoc($q)) {

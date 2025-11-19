@@ -8,16 +8,14 @@ $qstr = isset($_GET['q']) ? trim($_GET['q']) : '';
 $where = '';
 if ($qstr !== '') {
   $esc = mysqli_real_escape_string($conn, $qstr);
-  // allow searching by brand name (brands.name), legacy p.brand_name, product_name, scent or description
+  
   $where = "AND (COALESCE(b.name, p.brand_name) LIKE '%{$esc}%' OR p.product_name LIKE '%{$esc}%' OR p.scent_type LIKE '%{$esc}%' OR p.description LIKE '%{$esc}%')";
 }
 
-// pagination
 $perPage = 15;
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $offset = ($page - 1) * $perPage;
 
-// get total count
 $countSql = "SELECT COUNT(p.product_id) AS cnt FROM products p LEFT JOIN brands b ON p.brand_id = b.brand_id INNER JOIN inventory i ON p.product_id = i.product_id WHERE p.status = 'available' {$where}";
 $cntRes = mysqli_query($conn, $countSql);
 $totalItems = 0;

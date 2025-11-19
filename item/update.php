@@ -30,8 +30,6 @@ if ($brand_id <= 0 || $product_name === '' || $price === '' || !is_numeric($pric
     exit();
 }
 
-// handle image upload
-// support multiple images (images[]) and create product_images table if needed
 $target = null;
 $createImagesTable = "CREATE TABLE IF NOT EXISTS product_images (
     product_image_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -41,11 +39,9 @@ $createImagesTable = "CREATE TABLE IF NOT EXISTS product_images (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 mysqli_query($conn, $createImagesTable);
 
-// handle multiple uploads
 $uploadDir = __DIR__ . '/../uploads/products';
 if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 if (isset($_FILES['images']) && is_array($_FILES['images']['name'])) {
-    // Detect if at least one new file was uploaded (not just empty/no-file)
     $hasNewUpload = false;
     for ($i = 0; $i < count($_FILES['images']['name']); $i++) {
         if (isset($_FILES['images']['error'][$i]) && $_FILES['images']['error'][$i] === UPLOAD_ERR_OK) {
@@ -54,13 +50,11 @@ if (isset($_FILES['images']) && is_array($_FILES['images']['name'])) {
         }
     }
 
-    // If there are new uploads, remove existing images (both DB rows and files)
     if ($hasNewUpload) {
         $existing = mysqli_query($conn, "SELECT product_image_id, path FROM product_images WHERE product_id = {$product_id}");
         if ($existing) {
             while ($row = mysqli_fetch_assoc($existing)) {
                 $stored = $row['path'];
-                // compute absolute filesystem path
                 $filePath = __DIR__ . '/../' . str_replace('/', DIRECTORY_SEPARATOR, ltrim($stored, '/'));
                 if (file_exists($filePath)) {
                     @unlink($filePath);
@@ -69,7 +63,6 @@ if (isset($_FILES['images']) && is_array($_FILES['images']['name'])) {
             mysqli_query($conn, "DELETE FROM product_images WHERE product_id = {$product_id}");
         }
 
-        // Also clear legacy single-image column if present
         $resImg = mysqli_query($conn, "SELECT image FROM products WHERE product_id = {$product_id} LIMIT 1");
         if ($resImg && mysqli_num_rows($resImg) > 0) {
             $rowImg = mysqli_fetch_assoc($resImg);
@@ -83,13 +76,11 @@ if (isset($_FILES['images']) && is_array($_FILES['images']['name'])) {
         }
     }
 
-    // Process and save the new uploads
     $insertedCount = 0;
     for ($i = 0; $i < count($_FILES['images']['name']); $i++) {
         if (!isset($_FILES['images']['error'][$i])) continue;
         $err = $_FILES['images']['error'][$i];
         if ($err !== UPLOAD_ERR_OK) {
-            // ignore no-file but record other errors
             if ($err !== UPLOAD_ERR_NO_FILE) {
                 $_SESSION['imageError'][] = "Upload error for file index {$i}: code {$err}";
             }
@@ -115,7 +106,6 @@ if (isset($_FILES['images']) && is_array($_FILES['images']['name'])) {
             $_SESSION['imageError'][] = "Failed to move uploaded file for index {$i}.";
         }
     }
-    // if we attempted to upload new files but none were saved, surface an error
     if ($hasNewUpload && $insertedCount === 0) {
         if (!empty($_SESSION['imageError'])) {
             $_SESSION['message'] = 'Image upload failed: ' . implode(' | ', $_SESSION['imageError']);
@@ -127,7 +117,6 @@ if (isset($_FILES['images']) && is_array($_FILES['images']['name'])) {
     }
 }
 
-// update products
 $product_name_esc = mysqli_real_escape_string($conn, $product_name);
 $scent_esc = mysqli_real_escape_string($conn, $scent);
 $size_esc = mysqli_real_escape_string($conn, $size);
@@ -146,8 +135,6 @@ if (!mysqli_query($conn, $sql)) {
     header('Location: edit.php?id=' . $product_id);
     exit();
 }
-
-// update inventory (upsert style)
 $qty = (int)$qty;
 $check = mysqli_query($conn, "SELECT inventory_id FROM inventory WHERE product_id = {$product_id} LIMIT 1");
 if ($check && mysqli_num_rows($check) > 0) {
@@ -158,7 +145,6 @@ if ($check && mysqli_num_rows($check) > 0) {
 }
 
 $_SESSION['success'] = 'Product updated.';
-// support "Save & Return to Dashboard" from create/edit forms
 $redirect = 'index.php';
 if (isset($_POST['return']) && $_POST['return'] === 'dashboard') {
     $redirect = '/essence_db/admin/dashboard.php';

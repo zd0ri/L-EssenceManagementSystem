@@ -2,7 +2,6 @@
 session_start();
 include('../includes/config.php');
 
-// only admin allowed
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
     $_SESSION['message'] = 'Access denied.';
     header('Location: ../users/login.php');
@@ -23,14 +22,12 @@ if ($user_id <= 0 || !in_array($status, ['active','inactive'], true)) {
     exit();
 }
 
-// prevent admin from changing their own status
 if ($user_id === (int)$_SESSION['user_id']) {
     $_SESSION['message'] = 'You cannot change your own status.';
     header('Location: users_manage.php');
     exit();
 }
 
-// check user exists and get role
 $q = mysqli_prepare($conn, "SELECT role, status FROM users WHERE user_id = ? LIMIT 1");
 mysqli_stmt_bind_param($q, 'i', $user_id);
 mysqli_stmt_execute($q);
@@ -43,7 +40,7 @@ if (mysqli_stmt_num_rows($q) === 0) {
 mysqli_stmt_bind_result($q, $role, $curStatus);
 mysqli_stmt_fetch($q);
 
-// If deactivating an admin, ensure at least one active admin remains
+//  ensure at least one active admin remains
 if ($status === 'inactive' && $role === 'admin') {
     $adm = mysqli_query($conn, "SELECT COUNT(*) as cnt FROM users WHERE role = 'admin' AND status = 'active'");
     $admRow = $adm ? mysqli_fetch_assoc($adm) : null;
@@ -54,14 +51,12 @@ if ($status === 'inactive' && $role === 'admin') {
     }
 }
 
-// no-op if status unchanged
 if ($curStatus === $status) {
     $_SESSION['message'] = 'No change.';
     header('Location: users_manage.php');
     exit();
 }
 
-// update using prepared statement
 $updateSql = "UPDATE users SET status = ? WHERE user_id = ?";
 $stmt = mysqli_prepare($conn, $updateSql);
 if ($stmt) {

@@ -1,11 +1,6 @@
 <?php
 session_start();
 include("../includes/config.php");
-// This is a POST-only handler. Do not include the shared header here because
-// it sends output and will prevent header() redirects from working.
-// include("../includes/header.php");
-
-// server-side validation
 $email_raw = isset($_POST['email']) ? trim($_POST['email']) : '';
 $password_raw = isset($_POST['password']) ? $_POST['password'] : '';
 $confirmPass = isset($_POST['confirmPass']) ? $_POST['confirmPass'] : '';
@@ -53,11 +48,10 @@ if ($stmt) {
     exit();
 }
 
-// derive a username from the email (part before @)
 $username_raw = strstr($email, '@', true) ?: $email;
 $username = substr(preg_replace('/[^A-Za-z0-9_\-\.]/', '', $username_raw), 0, 50);
 
-// hash password (kept sha1 to remain compatible with existing users; consider migrating to password_hash)
+// hash password
 $password_hash = sha1($password_raw);
 
 $role = 'customer';

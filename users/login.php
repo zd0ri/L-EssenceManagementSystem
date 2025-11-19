@@ -31,14 +31,12 @@ if (isset($_POST['submit'])) {
                         mysqli_stmt_bind_result($stmt, $user_id, $db_email, $role, $account_status);
                         if (mysqli_stmt_num_rows($stmt) === 1) {
                                 mysqli_stmt_fetch($stmt);
-                                // Check if account is deactivated
                                 if ($account_status === 'inactive') {
                                         $_SESSION['message'] = 'Your account has been deactivated. Please contact support for assistance: <a href="mailto:support@lessenthera@gmail.com">lessenthera@gmail.com</a>.';
                                 } else {
                                         $_SESSION['email'] = $db_email;
                                         $_SESSION['user_id'] = $user_id;
                                         $_SESSION['role'] = $role;
-                                        // Redirect admins to dashboard, regular users to home
                                         if ($role === 'admin') {
                                                 header("Location: ../admin/dashboard.php");
                                         } else {
@@ -67,7 +65,6 @@ if (isset($_POST['submit'])) {
 <body class="login-body">
     <div class="login-container">
         <div class="login-wrapper">
-            <!-- Left: Login Form -->
             <div class="login-form-section">
                 <div class="login-form-inner">
                     <?php include __DIR__ . '/../includes/alert.php'; ?>
@@ -99,10 +96,8 @@ if (isset($_POST['submit'])) {
                 </div>
             </div>
 
-            <!-- Right: Carousel -->
             <div class="login-carousel-section">
                 <?php
-                // load a few product images for the carousel
                 $carouselImages = [];
                 $q = "SELECT COALESCE(pi.path, p.image) AS img_path, p.product_name, b.name as brand_name, p.scent_type
                       FROM products p

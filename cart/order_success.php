@@ -11,7 +11,6 @@ if ($id <= 0) {
     exit();
 }
 
-// fetch order
 $stmt = mysqli_prepare($conn, 'SELECT o.*, c.fullname, c.email, c.address, c.contact FROM orders o LEFT JOIN customers c ON o.customer_id = c.customer_id WHERE o.order_id = ? LIMIT 1');
 mysqli_stmt_bind_param($stmt, 'i', $id);
 mysqli_stmt_execute($stmt);
@@ -23,7 +22,6 @@ if (!$order) {
     exit();
 }
 
-// fetch items
 $stmt2 = mysqli_prepare($conn, 'SELECT oi.*, p.brand_name FROM order_items oi LEFT JOIN products p ON oi.product_id = p.product_id WHERE oi.order_id = ?');
 mysqli_stmt_bind_param($stmt2, 'i', $id);
 mysqli_stmt_execute($stmt2);
@@ -33,7 +31,6 @@ if ($res2) {
     while ($r = mysqli_fetch_assoc($res2)) $items[] = $r;
 }
 
-// fetch payment
 $stmt3 = mysqli_prepare($conn, 'SELECT * FROM payments WHERE order_id = ? LIMIT 1');
 mysqli_stmt_bind_param($stmt3, 'i', $id);
 mysqli_stmt_execute($stmt3);

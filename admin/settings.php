@@ -1,10 +1,8 @@
 <?php
 session_start();
 require_once __DIR__ . '/../includes/admin_auth.php';
-// Load config (DB) before processing POST, but delay header output until after any redirects
 require_once __DIR__ . '/../includes/config.php';
 
-// Ensure settings table exists
 $createTable = "CREATE TABLE IF NOT EXISTS site_settings (
   setting_id INT AUTO_INCREMENT PRIMARY KEY,
   setting_key VARCHAR(191) NOT NULL UNIQUE,
@@ -13,7 +11,6 @@ $createTable = "CREATE TABLE IF NOT EXISTS site_settings (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 mysqli_query($conn, $createTable);
 
-// Handle POST: update hero image
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
   $action = $_POST['action'];
   
@@ -68,7 +65,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
   }
 }
 
-// Load current settings
 $heroImage = null;
 $heroRes = mysqli_fetch_assoc(mysqli_query($conn, "SELECT setting_value FROM site_settings WHERE setting_key = 'hero_image' LIMIT 1"));
 if ($heroRes && !empty($heroRes['setting_value'])) {

@@ -1,6 +1,5 @@
 <?php
 session_start();
-// require admin before output
 require_once(__DIR__ . '/../includes/admin_auth.php');
 include("../includes/config.php");
 include("../includes/header.php");
@@ -15,7 +14,7 @@ if ($orderId <= 0 || empty($status)) {
     exit();
 }
 
-// Check payment method to determine if payment_status should be updated
+// check payment method 
 $paymentMethod = '';
 $paymentMethodQuery = mysqli_prepare($conn, 'SELECT payment_method FROM payments WHERE order_id = ? LIMIT 1');
 if ($paymentMethodQuery) {
@@ -27,7 +26,6 @@ if ($paymentMethodQuery) {
     error_log("Order {$orderId} - Payment Method: '{$paymentMethod}'");
 }
 
-// Build update query
 $sql = "UPDATE orders SET status = '{$status}'";
 if ($status === 'completed' && trim($paymentMethod) === 'Cash on Delivery') {
     $sql .= ", payment_status = 'paid'";

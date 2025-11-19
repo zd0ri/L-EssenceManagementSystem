@@ -6,9 +6,8 @@ require_once __DIR__ . '/includes/config.php';
 function mask_bad_words($text) {
     // list of words to mask (lowercase)
     $bad = [
-        'shit','fuck','bitch','asshole','damn','crap'
+        'shit','fuck','bitch','gago','putangina','tangina','asshole','damn','crap'
     ];
-    // build regex word boundaries, case-insensitive
     foreach ($bad as $w) {
         $pattern = '/\b' . preg_quote($w, '/') . '\b/iu';
         $text = preg_replace_callback($pattern, function($m){
@@ -19,7 +18,6 @@ function mask_bad_words($text) {
     return $text;
 }
 
-// helper: get customer_id for a user (or null)
 function get_customer_id_for_user($conn, $user_id) {
   $customer_id = null;
   $cust_q = mysqli_prepare($conn, "SELECT customer_id FROM customers WHERE user_id = ? LIMIT 1");
@@ -33,7 +31,6 @@ function get_customer_id_for_user($conn, $user_id) {
   return $customer_id;
 }
 
-// helper: return true if the given customer_id has purchased the given product_id
 function customer_bought_product($conn, $customer_id, $product_id) {
   if (!$customer_id) return false;
   $p = mysqli_prepare($conn, "SELECT oi.order_item_id FROM order_items oi JOIN orders o ON oi.order_id = o.order_id WHERE oi.product_id = ? AND o.customer_id = ? LIMIT 1");
@@ -46,7 +43,6 @@ function customer_bought_product($conn, $customer_id, $product_id) {
   return false;
 }
 
-// ensure reviews table exists
 $createReviews = "CREATE TABLE IF NOT EXISTS reviews (
     review_id INT AUTO_INCREMENT PRIMARY KEY,
     product_id INT NOT NULL,
@@ -59,12 +55,10 @@ $createReviews = "CREATE TABLE IF NOT EXISTS reviews (
   -- allow multiple reviews per user/product
   KEY idx_product_id (product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-  // If the table already existed with a unique constraint, remove it so multiple reviews are allowed
   $checkIdx = mysqli_query($conn, "SHOW INDEX FROM reviews WHERE Key_name = 'product_user_unique'");
   if ($checkIdx && mysqli_num_rows($checkIdx) > 0) {
     mysqli_query($conn, "ALTER TABLE reviews DROP INDEX product_user_unique");
   }
-  // ensure review_image column exists
   $checkCol = mysqli_query($conn, "SHOW COLUMNS FROM reviews LIKE 'review_image'");
   if (!($checkCol && mysqli_num_rows($checkCol) > 0)) {
     mysqli_query($conn, "ALTER TABLE reviews ADD COLUMN review_image VARCHAR(255) NULL AFTER review_text");
@@ -92,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
     } else {
         $customer_id = null;
     }
-    // verify the user has purchased this product (exists in order_items for their customer_id)
+    // verify the user has purchased this product
     $hasBought = false;
     if ($customer_id) {
       $p = mysqli_prepare($conn, "SELECT oi.order_item_id FROM order_items oi JOIN orders o ON oi.order_id = o.order_id WHERE oi.product_id = ? AND o.customer_id = ? LIMIT 1");
@@ -108,10 +102,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
       header('Location: product.php?id=' . $id);
       exit();
     }
-    // handle delete request
     if (isset($_POST['delete_review']) && isset($_POST['review_id'])) {
       $rid = (int)$_POST['review_id'];
-      // verify owner
+      // verify
       $qv = mysqli_prepare($conn, "SELECT review_image FROM reviews WHERE review_id = ? AND user_id = ? LIMIT 1");
       if ($qv) {
         mysqli_stmt_bind_param($qv, 'ii', $rid, $user_id);
@@ -119,7 +112,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
         $rv = mysqli_stmt_get_result($qv);
         $rowv = $rv ? mysqli_fetch_assoc($rv) : null;
         if ($rowv) {
-          // delete file if exists
           if (!empty($rowv['review_image'])) {
             $filePath = __DIR__ . '/' . ltrim($rowv['review_image'], '/');
             if (file_exists($filePath)) @unlink($filePath);
@@ -140,7 +132,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
     if ($rating < 1) $rating = 1; if ($rating > 5) $rating = 5;
     $review_text = isset($_POST['review_text']) ? trim($_POST['review_text']) : '';
     $masked = mask_bad_words($review_text);
-    // handle file upload (optional)
     $uploadedPath = null;
     if (!empty($_FILES['review_image']) && $_FILES['review_image']['error'] !== UPLOAD_ERR_NO_FILE) {
       $up = $_FILES['review_image'];
@@ -164,10 +155,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
         }
       }
     }
-    // if review_id provided -> update specific review
     if (isset($_POST['review_id']) && (int)$_POST['review_id'] > 0) {
       $rid = (int)$_POST['review_id'];
-      // verify ownership
+      // verify
       $sv = mysqli_prepare($conn, "SELECT review_image FROM reviews WHERE review_id = ? AND user_id = ? LIMIT 1");
       $existingImage = null;
       $canEdit = false;
@@ -179,11 +169,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
         if ($rowv) { $canEdit = true; $existingImage = $rowv['review_image']; }
       }
       if ($canEdit) {
-        // handle remove_image flag
         if (isset($_POST['remove_image']) && $existingImage) {
           $fp = __DIR__ . '/' . ltrim($existingImage, '/'); if (file_exists($fp)) @unlink($fp); $existingImage = null;
         }
-        // if new upload provided, delete old
+        
         if ($uploadedPath && $existingImage) { $fp = __DIR__ . '/' . ltrim($existingImage, '/'); if (file_exists($fp)) @unlink($fp); }
         $newImageToStore = $uploadedPath ? $uploadedPath : $existingImage;
         $u = mysqli_prepare($conn, "UPDATE reviews SET rating = ?, review_text = ?, review_image = ?, updated_at = CURRENT_TIMESTAMP WHERE review_id = ? AND user_id = ?");
@@ -194,7 +183,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
         }
       }
     } else {
-      // insert new review
       $stmt = mysqli_prepare($conn, "INSERT INTO reviews (product_id, user_id, customer_id, rating, review_text, review_image) VALUES (?, ?, ?, ?, ?, ?)");
       if ($stmt) {
         mysqli_stmt_bind_param($stmt, 'iiiiss', $id, $user_id, $customer_id, $rating, $masked, $uploadedPath);
@@ -204,11 +192,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
         $_SESSION['message'] = 'Failed to save review.';
       }
     }
-  // If the POST included a return_to value (e.g. submitted from order view), redirect back there.
   $redirect = 'product.php?id=' . $id . '#reviews';
   if (!empty($_POST['return_to'])) {
     $rt = trim($_POST['return_to']);
-    // basic allow-list: only accept internal relative paths starting with '/'
     if (strpos($rt, '/') === 0) {
       $redirect = $rt;
     }
@@ -217,7 +203,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
   exit();
 }
 
-// fetch product
 $product_q = mysqli_prepare($conn, "SELECT p.*, b.name as brand_name, i.quantity FROM products p LEFT JOIN brands b ON p.brand_id = b.brand_id LEFT JOIN inventory i ON p.product_id = i.product_id WHERE p.product_id = ? LIMIT 1");
 if ($product_q) {
     mysqli_stmt_bind_param($product_q, 'i', $id);
@@ -234,7 +219,6 @@ if (!$product) {
     exit();
 }
 
-// images
 $imgs = [];
 $qpi = mysqli_query($conn, "SELECT path FROM product_images WHERE product_id = {$id} ORDER BY product_image_id ASC");
 if ($qpi && mysqli_num_rows($qpi) > 0) {
@@ -242,11 +226,9 @@ if ($qpi && mysqli_num_rows($qpi) > 0) {
 }
 if (empty($imgs) && !empty($product['image'])) $imgs[] = $product['image'];
 
-// build base URL like index.php to resolve uploads and relative paths correctly
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
 
-// fetch reviews
 $reviews = [];
 $qr = mysqli_prepare($conn, "SELECT r.*, u.username FROM reviews r JOIN users u ON r.user_id = u.user_id WHERE r.product_id = ? ORDER BY r.created_at DESC");
 if ($qr) {
@@ -255,14 +237,12 @@ if ($qr) {
     $resr = mysqli_stmt_get_result($qr);
     if ($resr) {
         while ($row = mysqli_fetch_assoc($resr)) {
-            // mask display of foul words as well just in case
             $row['display_text'] = mask_bad_words($row['review_text']);
             $reviews[] = $row;
         }
     }
 }
 
-// include header AFTER any POST handling / redirects to avoid "headers already sent"
 include __DIR__ . '/includes/header.php';
 
 ?>
@@ -309,7 +289,6 @@ include __DIR__ . '/includes/header.php';
 
       <?php if (isset($_SESSION['user_id'])): ?>
         <?php
-        // check if user can review (bought product)
         $canReview = false;
         $user_id = (int)$_SESSION['user_id'];
         $cust_q = mysqli_prepare($conn, "SELECT customer_id FROM customers WHERE user_id = ? LIMIT 1");
@@ -332,7 +311,6 @@ include __DIR__ . '/includes/header.php';
         ?>
 
         <?php
-        // Reviews can only be added from the "My Orders" page. Make product page read-only for reviews.
         if (isset($_SESSION['user_id'])) {
             echo '<div class="alert alert-info">To add a review for this product, please go to <a href="/essence_db/users/my_orders.php">My Orders</a> and add your review from the order details.</div>';
         } else {
@@ -362,13 +340,11 @@ include __DIR__ . '/includes/header.php';
           <div style="margin-top:.75rem;"><img src="<?php echo htmlspecialchars($baseUrl . ltrim($r['review_image'], '/')); ?>" style="max-width:200px;max-height:200px;object-fit:cover;border-radius:.25rem;border:1px solid #ddd;" alt="review image"></div>
         <?php endif; ?>
         <div class="text-muted small">Posted: <?php echo $r['created_at']; ?></div>
-        <!-- Reviews are read-only on the product page. Editing and adding reviews is available through My Orders only. -->
       </div>
     <?php endforeach; ?>
   <?php endif; ?>
 
 <script>
-// if page loaded with #review-form, focus the textarea for convenience
 document.addEventListener('DOMContentLoaded', function(){
   if (window.location.hash === '#review-form') {
     var el = document.getElementById('review_text');
@@ -377,7 +353,6 @@ document.addEventListener('DOMContentLoaded', function(){
       el.scrollIntoView({behavior:'smooth', block:'center'});
     }
   }
-  // cancel edit button
   var cancelBtn = document.getElementById('cancel-edit');
   if (cancelBtn) {
     cancelBtn.addEventListener('click', function(){ resetReviewForm(); });
@@ -402,11 +377,9 @@ function startEdit(id) {
     preview.style.display = 'none';
     if (removeCheckbox) removeCheckbox.checked = false;
   }
-  // change button text and show cancel
   var submitBtn = document.querySelector('#review-form button[type=submit]');
   if (submitBtn) submitBtn.textContent = 'Update Review';
   var cancelBtn = document.getElementById('cancel-edit'); if (cancelBtn) cancelBtn.style.display = 'inline-block';
-  // scroll to form
   var form = document.getElementById('review-form'); if (form) { form.scrollIntoView({behavior:'smooth', block:'center'}); }
 }
 

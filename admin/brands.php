@@ -3,7 +3,6 @@ session_start();
 require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../includes/config.php';
 
-// ensure brands table
 $create = "CREATE TABLE IF NOT EXISTS brands (
   brand_id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(191) NOT NULL,
@@ -13,7 +12,6 @@ $create = "CREATE TABLE IF NOT EXISTS brands (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 mysqli_query($conn, $create);
 
-// handle POST actions: create, update, delete BEFORE including header
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
   $action = $_POST['action'];
   if ($action === 'create' || $action === 'update') {
@@ -47,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
       $_SESSION['success'] = 'Brand created successfully.';
     } else {
       $id = (int)($_POST['brand_id'] ?? 0);
-      // if new image, delete old
+      
       if ($imagePath) {
         $old = mysqli_fetch_assoc(mysqli_query($conn, "SELECT image FROM brands WHERE brand_id = {$id} LIMIT 1"));
         if ($old && !empty($old['image'])) { $fp = __DIR__ . '/../' . ltrim($old['image'],'/'); if (file_exists($fp)) @unlink($fp); }
@@ -66,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     mysqli_query($conn, "DELETE FROM brands WHERE brand_id = {$id}");
     $_SESSION['success'] = 'Brand deleted successfully.';
   }
-  // allow optional return to dashboard: pass return=dashboard in GET/POST to redirect back to admin dashboard
+  
   $redirect = 'brands.php';
   if ((isset($_REQUEST['return']) && $_REQUEST['return'] === 'dashboard') || (isset($_POST['return']) && $_POST['return'] === 'dashboard')) {
     $redirect = '/essence_db/admin/dashboard.php';
@@ -74,7 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
   header('Location: ' . $redirect); exit();
 }
 
-// NOW include header after all header() calls are done
 include __DIR__ . '/../includes/header.php';
 
 // load brands
@@ -140,7 +137,7 @@ if ($rb && mysqli_num_rows($rb) > 0) while ($r = mysqli_fetch_assoc($rb)) $brand
 </div>
 
 <script>
-  // attach brand data to JS objects
+  
   <?php foreach ($brands as $b): ?>
     window['brand_<?php echo (int)$b['brand_id']; ?>'] = <?php echo json_encode($b); ?>;
   <?php endforeach; ?>

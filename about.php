@@ -7,11 +7,6 @@ include('./includes/config.php');
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
 <style>
-/* ===============================================
-   Da’at Studio Inspired Warm Neutrals Theme
-   Refined Palette: Creamy Harvest, Golden Sand,
-   Chestnut Grove, Smoky Oak, Cocoa Bark
-================================================= */
 
 :root {
   --cream-harvest: #FAF3E3;

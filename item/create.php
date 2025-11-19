@@ -1,11 +1,9 @@
 <?php
 session_start();
-// require admin before any output
 require_once(__DIR__ . '/../includes/admin_auth.php');
 include('../includes/header.php');
 include('../includes/config.php');
 
-// var_dump($_SESSION);
 ?>
 
 <body>
@@ -16,7 +14,6 @@ include('../includes/config.php');
             <div class="form-group">
                 <label for="brand_id" class="form-label">Brand</label>
                 <?php
-                // Load brands for select box
                 $brandsForSelect = [];
                 $qb = mysqli_query($conn, "SELECT brand_id, name FROM brands ORDER BY name ASC");
                 if ($qb && mysqli_num_rows($qb) > 0) {
@@ -109,7 +106,6 @@ include('../includes/config.php');
                         for (let i = 0; i < files.length; i++) {
                             const file = files[i];
                             
-                            // Check if it's an image
                             if (!file.type.match('image.*')) {
                                 continue;
                             }
@@ -157,7 +153,6 @@ include('../includes/config.php');
                             reader.readAsDataURL(file);
                         }
                         
-                        // Show count feedback
                         imageCount.innerHTML = '<strong>' + validCount + '</strong> image' + (validCount !== 1 ? 's' : '') + ' selected';
                     });
                 });

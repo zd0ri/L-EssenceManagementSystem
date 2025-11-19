@@ -4,7 +4,6 @@ require_once __DIR__ . '/../includes/auth.php';
 include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/config.php';
 
-// Debug: log what we're receiving
 @file_put_contents(__DIR__ . '/checkout_debug.log', json_encode([
     'time' => date('c'),
     'post_selected_items' => isset($_POST['selected_items']) ? $_POST['selected_items'] : 'NOT SET',
@@ -14,7 +13,7 @@ include __DIR__ . '/../includes/config.php';
 
 $all_cart = isset($_SESSION['cart_products']) && is_array($_SESSION['cart_products']) ? $_SESSION['cart_products'] : [];
 
-// Filter cart to only selected items (from POST)
+//only selected items
 $selected_ids = isset($_POST['selected_items']) ? array_map('intval', (array)$_POST['selected_items']) : [];
 $cart = [];
 if (!empty($selected_ids)) {
@@ -25,10 +24,9 @@ if (!empty($selected_ids)) {
   }
 }
 
-// If the view_cart passed live quantities (selected_qty), override item_qty in the $cart
 $posted_qty = [];
 if (isset($_POST['selected_qty']) && is_array($_POST['selected_qty'])) {
-  // keys are product ids => qty
+  
   foreach ($_POST['selected_qty'] as $k => $v) {
     $pid = (int)$k;
     $posted_qty[$pid] = (int)$v;
@@ -50,7 +48,6 @@ if (count($cart) === 0) {
     exit();
 }
 
-// compute total
 $total = 0.0;
 foreach ($cart as $it) {
     $total += (float)$it['item_price'] * (int)$it['item_qty'];
@@ -77,7 +74,7 @@ if (isset($_SESSION['user_id'])) {
       <ul class="list-group mb-3">
         <?php foreach ($cart as $it): 
                 $pid = (int)$it['item_id'];
-                // fetch first image for product
+                
                 $imgPath = '';
                 $qimg = mysqli_query($conn, "SELECT COALESCE((SELECT path FROM product_images WHERE product_id = p.product_id ORDER BY product_image_id ASC LIMIT 1), p.image) AS img_path FROM products p WHERE p.product_id = {$pid} LIMIT 1");
                 if ($qimg && mysqli_num_rows($qimg) > 0) {
@@ -108,7 +105,7 @@ if (isset($_SESSION['user_id'])) {
       </ul>
 
       <form method="POST" action="checkout.php">
-        <!-- Pass selected items to checkout.php -->
+        
         <?php foreach ($selected_ids as $id): ?>
           <input type="hidden" name="selected_items[]" value="<?php echo $id; ?>">
         <?php endforeach; ?>

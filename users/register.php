@@ -46,7 +46,6 @@ require_once __DIR__ . '/../includes/config.php';
             <!-- Right: Carousel -->
             <div class="login-carousel-section">
                 <?php
-                // load a few product images for the carousel
                 $carouselImages = [];
                 $q = "SELECT COALESCE(pi.path, p.image) AS img_path, p.brand_name, p.scent_type
                       FROM products p

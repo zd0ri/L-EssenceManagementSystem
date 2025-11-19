@@ -7,7 +7,6 @@ include('../includes/config.php');
 $order_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $current_user_id = (int)($_SESSION['user_id'] ?? 0);
 
-// verify order belongs to this customer
 $stmt = mysqli_prepare($conn, 'SELECT o.order_id, o.total_amount, o.status, o.payment_status, o.order_date, o.customer_id FROM orders o WHERE o.order_id = ? LIMIT 1');
 mysqli_stmt_bind_param($stmt, 'i', $order_id);
 mysqli_stmt_execute($stmt);
@@ -20,7 +19,6 @@ if (!$order) {
   exit();
 }
 
-// fetch customer_id for current user
 $stmt2 = mysqli_prepare($conn, 'SELECT customer_id FROM customers WHERE user_id = ? LIMIT 1');
 mysqli_stmt_bind_param($stmt2, 'i', $current_user_id);
 mysqli_stmt_execute($stmt2);
@@ -34,7 +32,6 @@ if ($customer_id !== (int)$order['customer_id']) {
   exit();
 }
 
-// fetch order items
 $q = mysqli_prepare($conn, 'SELECT oi.*, p.product_name, b.name as brand_name, COALESCE((SELECT path FROM product_images WHERE product_id = p.product_id ORDER BY product_image_id ASC LIMIT 1), p.image) AS image_path FROM order_items oi JOIN products p ON oi.product_id = p.product_id LEFT JOIN brands b ON p.brand_id = b.brand_id WHERE oi.order_id = ?');
 mysqli_stmt_bind_param($q, 'i', $order_id);
 mysqli_stmt_execute($q);
@@ -45,7 +42,6 @@ $resItems = mysqli_stmt_get_result($q);
   <h2>Order #<?php echo (int)$order['order_id']; ?></h2>
   <p class="text-muted">Placed on <?php echo htmlspecialchars($order['order_date']); ?> — Status: <?php echo htmlspecialchars(ucfirst($order['status'])); ?></p>
   <?php
-    // Allow customer to cancel the order if it's still pending or processing
     $canCancel = in_array($order['status'], ['pending','processing']);
     if ($canCancel):
   ?>

@@ -99,9 +99,8 @@ if ($stmt) {
             }
         }
 
-        // If marking as cancelled and payment method is non-COD, mark refunded and update payments table
         if ($status === 'cancelled') {
-            // determine payment method
+            // payment method
             $pmq2 = mysqli_prepare($conn, 'SELECT payment_method FROM payments WHERE order_id = ? LIMIT 1');
             $pmethod = '';
             if ($pmq2) {
@@ -114,14 +113,13 @@ if ($stmt) {
             if ($pmethod !== 'Cash on Delivery' && $pmethod !== '') {
                 // mark order payment_status as refunded
                 mysqli_query($conn, "UPDATE orders SET payment_status = 'refunded' WHERE order_id = {$order_id}");
-                // simple payments table mark (real-world should integrate with gateway)
+                
                 mysqli_query($conn, "UPDATE payments SET reference_no = CONCAT(IFNULL(reference_no,''), '|REFUND'), amount_paid = 0 WHERE order_id = {$order_id}");
             }
         }
 
-        // after updating status, send notification email to customer with order details
         include_once __DIR__ . '/../includes/mail.php';
-        // fetch order and customer email
+        
         $s = mysqli_prepare($conn, 'SELECT o.order_id, o.total_amount, o.status, o.payment_status, c.email, c.fullname FROM orders o LEFT JOIN customers c ON o.customer_id = c.customer_id WHERE o.order_id = ? LIMIT 1');
         if ($s) {
             mysqli_stmt_bind_param($s, 'i', $order_id);
@@ -129,7 +127,7 @@ if ($stmt) {
             $res = mysqli_stmt_get_result($s);
             $ord = $res ? mysqli_fetch_assoc($res) : null;
             if ($ord && !empty($ord['email'])) {
-                // fetch order items
+                
                 $items = [];
                 $si = mysqli_prepare($conn, 'SELECT oi.product_id, oi.quantity, oi.price_each, p.product_name, b.name as brand_name FROM order_items oi LEFT JOIN products p ON oi.product_id = p.product_id LEFT JOIN brands b ON p.brand_id = b.brand_id WHERE oi.order_id = ?');
                 if ($si) {
@@ -141,7 +139,6 @@ if ($stmt) {
                     }
                 }
 
-                // build email HTML
                 $paymentStatus = ucfirst($ord['payment_status']);
                 $html = "<h3>Order #{$order_id} - Status updated to " . htmlspecialchars(ucfirst($status));
                 if ($status === 'completed') {

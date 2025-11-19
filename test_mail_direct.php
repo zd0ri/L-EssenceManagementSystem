@@ -1,5 +1,4 @@
 <?php
-// Direct test - no admin required
 require_once __DIR__ . '/../includes/config.php';
 include_once __DIR__ . '/../includes/mail.php';
 

@@ -16,7 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $user_id = isset($_POST['user_id']) ? (int)$_POST['user_id'] : 0;
 $role = isset($_POST['role']) ? trim($_POST['role']) : '';
 
-// only allow 'admin' or 'customer'
 $allowedRoles = ['admin', 'customer'];
 if ($user_id <= 0 || !in_array($role, $allowedRoles, true)) {
     $_SESSION['message'] = 'Invalid input.';
@@ -24,7 +23,6 @@ if ($user_id <= 0 || !in_array($role, $allowedRoles, true)) {
     exit();
 }
 
-// only update role for active users
 $q = mysqli_query($conn, "SELECT status FROM users WHERE user_id = {$user_id} LIMIT 1");
 if (!$q || mysqli_num_rows($q) === 0) {
     $_SESSION['message'] = 'User not found.';
@@ -38,7 +36,6 @@ if ($row['status'] !== 'active') {
     exit();
 }
 
-// prevent demoting last admin: ensure at least one admin remains
 if ($role !== 'admin') {
     $adm = mysqli_query($conn, "SELECT COUNT(*) as cnt FROM users WHERE role = 'admin' AND status = 'active'");
     $admRow = mysqli_fetch_assoc($adm);

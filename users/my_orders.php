@@ -5,7 +5,6 @@ include('../includes/header.php');
 include('../includes/config.php');
 
 $current_user_id = (int)($_SESSION['user_id'] ?? 0);
-// fetch customer id
 $stmt = mysqli_prepare($conn, 'SELECT customer_id FROM customers WHERE user_id = ? LIMIT 1');
 mysqli_stmt_bind_param($stmt, 'i', $current_user_id);
 mysqli_stmt_execute($stmt);
@@ -19,7 +18,6 @@ if (!$customer_id) {
     exit();
 }
 
-// fetch orders for this customer
 $sql = 'SELECT o.order_id, o.total_amount, o.status, o.payment_status, o.order_date FROM orders o WHERE o.customer_id = ? ORDER BY o.order_date DESC';
 $stmt2 = mysqli_prepare($conn, $sql);
 mysqli_stmt_bind_param($stmt2, 'i', $customer_id);

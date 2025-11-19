@@ -15,7 +15,6 @@ if ($order_id <= 0) {
     exit();
 }
 
-// find customer_id for current user
 $current_user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
 $custStmt = mysqli_prepare($conn, 'SELECT customer_id FROM customers WHERE user_id = ? LIMIT 1');
 mysqli_stmt_bind_param($custStmt, 'i', $current_user_id);
@@ -29,7 +28,6 @@ if (!$customer_id) {
     exit();
 }
 
-// verify order belongs to this customer and is cancellable
 $s = mysqli_prepare($conn, 'SELECT status FROM orders WHERE order_id = ? AND customer_id = ? LIMIT 1');
 mysqli_stmt_bind_param($s, 'ii', $order_id, $customer_id);
 mysqli_stmt_execute($s);
@@ -49,7 +47,6 @@ if (!in_array($curStatus, $allowed)) {
     exit();
 }
 
-// determine payment method
 $pmq = mysqli_prepare($conn, 'SELECT payment_method FROM payments WHERE order_id = ? LIMIT 1');
 mysqli_stmt_bind_param($pmq, 'i', $order_id);
 mysqli_stmt_execute($pmq);
@@ -59,22 +56,19 @@ $paymentMethod = $pmd ? trim($pmd['payment_method']) : '';
 
 mysqli_begin_transaction($conn);
 try {
-    // cancel order
     $upd = mysqli_prepare($conn, 'UPDATE orders SET status = ? WHERE order_id = ?');
     $status = 'cancelled';
     mysqli_stmt_bind_param($upd, 'si', $status, $order_id);
     mysqli_stmt_execute($upd);
 
-    // if paid (non-COD), mark refunded
     if ($paymentMethod !== 'Cash on Delivery' && $paymentMethod !== '') {
         mysqli_query($conn, "UPDATE orders SET payment_status = 'refunded' WHERE order_id = {$order_id}");
-        // update payments table to indicate refund -- simple mark, real integrations would call gateway
+        
         mysqli_query($conn, "UPDATE payments SET reference_no = CONCAT(IFNULL(reference_no,''), '|REFUND'), amount_paid = 0 WHERE order_id = {$order_id}");
     }
 
     mysqli_commit($conn);
 
-    // notify customer by email
     include_once __DIR__ . '/../includes/mail.php';
     $s2 = mysqli_prepare($conn, 'SELECT c.email, c.fullname FROM orders o LEFT JOIN customers c ON o.customer_id = c.customer_id WHERE o.order_id = ? LIMIT 1');
     if ($s2) {

@@ -11,8 +11,6 @@ include('../includes/config.php');
 
 //order details
 
-
-// fetch orders with customer info
 $sql = "SELECT o.order_id, o.total_amount AS total, o.status, o.payment_status, c.fullname, c.email, o.order_date FROM orders o LEFT JOIN customers c ON o.customer_id = c.customer_id ORDER BY o.order_date DESC";
 $result = mysqli_query($conn, $sql);
 $itemCount = $result ? mysqli_num_rows($result) : 0;
@@ -31,12 +29,10 @@ $itemCount = $result ? mysqli_num_rows($result) : 0;
         echo "<td>" . htmlspecialchars($row['fullname'] ?? 'Guest') . "</td>";
         echo "<td>" . htmlspecialchars($row['email'] ?? '') . "</td>";
         echo "<td>" . htmlspecialchars(ucfirst($row['payment_status'])) . "</td>";
-        // status with color
         $color = $row['status'] === 'completed' ? 'green' : 'red';
         echo "<td style='color: {$color}'>" . htmlspecialchars(ucfirst($row['status'])) . "</td>";
         echo "<td>" . htmlspecialchars($row['order_date']) . "</td>";
 
-        // actions: view details, change status (form), and delete
         echo "<td>";
         echo "<a href='orderDetails.php?id={$row['order_id']}' class='btn btn-sm btn-outline-primary me-2'>View</a>";
         echo "<form method='POST' action='update_order_status.php' style='display:inline-block; margin-right:6px;'>";
@@ -51,7 +47,6 @@ $itemCount = $result ? mysqli_num_rows($result) : 0;
         echo "<button type='submit' class='btn btn-sm btn-success'>Save</button>";
         echo "</form>";
 
-        // Delete form (separate POST) - includes JS confirm
         echo "<form method='POST' action='order_delete.php' style='display:inline-block' onsubmit=\"return confirm('Delete this order? This cannot be undone.');\">";
         echo "<input type='hidden' name='order_id' value='" . (int)$row['order_id'] . "' />";
         echo "<button type='submit' class='btn btn-sm btn-danger'>Delete</button>";

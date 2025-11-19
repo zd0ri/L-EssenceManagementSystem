@@ -3,16 +3,13 @@ session_start();
 require_once __DIR__ . '/includes/config.php';
 include __DIR__ . '/includes/header.php';
 
-// Support both id (brand_id) and brand (brand_name) for backward compatibility
 $brand_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $brand_name = isset($_GET['brand']) ? trim($_GET['brand']) : '';
 $brand_display = '';
 
-// fetch products for brand
 $products = [];
 
 if ($brand_id > 0) {
-    // Query by brand_id (preferred)
     $sql = "SELECT p.product_id AS productId, p.product_name, b.name as brand_name, p.scent_type AS scent_type, p.price, p.image, i.quantity,
       COALESCE(SUM(oi.quantity),0) AS sales_count
       FROM products p
@@ -33,7 +30,7 @@ if ($brand_id > 0) {
             }
         }
     }
-    // If no products found, fetch brand name from brands table
+    // If no products found
     if ($brand_display === '') {
         $bq = mysqli_prepare($conn, "SELECT name FROM brands WHERE brand_id = ? LIMIT 1");
         if ($bq) {
@@ -45,7 +42,6 @@ if ($brand_id > 0) {
         }
     }
 } elseif ($brand_name !== '') {
-    // Query by brand_name (backward compatibility) - find brand_id first
     $sql = "SELECT p.product_id AS productId, p.product_name, b.name as brand_name, p.scent_type AS scent_type, p.price, p.image, i.quantity,
       COALESCE(SUM(oi.quantity),0) AS sales_count
       FROM products p
@@ -73,7 +69,6 @@ if ($brand_id > 0) {
     exit();
 }
 
-// baseUrl for images
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
 ?>
@@ -99,7 +94,7 @@ $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
         }
         if (empty($imgs) && !empty($rawImage)) $imgs[] = $rawImage;
       ?>
-      <div>
+      <div class="product-tile">
         <div class="card shadow-sm text-center p-2 product-card">
           <?php
           if (count($imgs) === 0) {

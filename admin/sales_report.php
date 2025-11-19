@@ -4,8 +4,7 @@ require_once __DIR__ . '/../includes/auth.php';
 include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/config.php';
 
-// only admins allowed (simple guard - adjust as your auth requires)
-
+// only admins allowed 
 if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
   echo '<div class="container py-4"><div class="alert alert-danger">Access denied.</div></div>';
   include __DIR__ . '/../includes/footer.php';
@@ -15,10 +14,6 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 $start = isset($_GET['start']) ? $_GET['start'] : date('Y-m-d', strtotime('-30 days'));
 $end = isset($_GET['end']) ? $_GET['end'] : date('Y-m-d');
 
-// normalize date range for queries
-// Export CSV logic removed
-
-// summary queries (prepared)
 $summary_sql = "SELECT COALESCE(SUM(o.total_amount),0) AS total_sales,
   COUNT(DISTINCT o.order_id) AS total_orders
 FROM orders o
@@ -40,10 +35,7 @@ mysqli_stmt_execute($stmt2);
 $res2 = mysqli_stmt_get_result($stmt2);
 $items_row = $res2 ? mysqli_fetch_assoc($res2) : ['items_sold' => 0];
 
-
-
-
-// Product breakdown: show all products with sales in the selected range
+// sales in the selected range
 $breakdown = [];
 $breakdown_sql = "
 SELECT
@@ -172,7 +164,6 @@ if ($res4) {
       <div class="card-label">Items Sold</div>
       <div class="card-value"><?php echo (int)$items_row['items_sold']; ?></div>
     </div>
-    <!-- Net Income card removed -->
   </div>
 
   <div class="dashboard-section">
@@ -204,7 +195,6 @@ if ($res4) {
 
     <form method="post" class="mt-3">
       <input type="hidden" name="total_sales" value="<?php echo htmlspecialchars($summary['total_sales']); ?>">
-      <!-- total_expenses hidden input removed -->
       <button type="submit" name="save_report" class="btn btn-success">Save Report</button>
       <a href="/essence_db/admin/" class="btn btn-outline-secondary ms-2">Back to Admin</a>
     </form>

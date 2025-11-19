@@ -116,15 +116,13 @@ include('../includes/config.php');
                 </div>
             </div>
         </div>
-        </form> <!-- end cart_update form -->
+        </form> 
 
-        <!-- Hidden form for checkout submission (must be outside the cart update form) -->
         <form id="checkout-form" method="POST" action="checkout_form.php" style="display:none;">
-            <!-- selected items will be added here by JavaScript -->
+            
         </form>
 
     <script>
-    // Update order summary when checkboxes or quantity inputs change
     function updateOrderSummary() {
         let selectedCount = 0;
         let selectedTotal = 0.0;
@@ -132,7 +130,7 @@ include('../includes/config.php');
         document.querySelectorAll('.item-checkbox:checked').forEach(checkbox => {
             selectedCount++;
             let price = parseFloat(checkbox.dataset.price) || 0;
-            // try to read live qty from the nearby qty input; fall back to dataset
+            
             let qty = parseInt(checkbox.dataset.qty) || 0;
             const productItem = checkbox.closest('.product-item');
             if (productItem) {
@@ -151,14 +149,12 @@ include('../includes/config.php');
         document.getElementById('btn-checkout').disabled = selectedCount === 0;
     }
 
-    // Checkout with only selected items (include live quantities)
     function checkoutSelected() {
         let selectedIds = [];
         let quantities = {};
         document.querySelectorAll('.item-checkbox:checked').forEach(checkbox => {
             const id = checkbox.value;
             selectedIds.push(id);
-            // read live qty from the qty input if present
             let qty = parseInt(checkbox.dataset.qty) || 0;
             const productItem = checkbox.closest('.product-item');
             if (productItem) {
@@ -176,7 +172,6 @@ include('../includes/config.php');
             return;
         }
 
-        // Clear previous hidden inputs and add current selections
         let checkoutForm = document.getElementById('checkout-form');
         checkoutForm.innerHTML = ''; // Clear previous inputs
 
@@ -187,25 +182,21 @@ include('../includes/config.php');
             input.value = id;
             checkoutForm.appendChild(input);
 
-            // include quantity for this item so checkout_form.php can use the live qty
             let qinput = document.createElement('input');
             qinput.type = 'hidden';
             qinput.name = 'selected_qty[' + id + ']';
             qinput.value = quantities[id];
             checkoutForm.appendChild(qinput);
         });
-
-        // Submit the form
+        
         checkoutForm.submit();
     }
 
-    // Initialize on page load and when checkboxes/qty inputs change
     document.addEventListener('DOMContentLoaded', function() {
         updateOrderSummary();
         document.querySelectorAll('.item-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', updateOrderSummary);
         });
-        // also update summary when quantity inputs change
         document.querySelectorAll('.qty-input').forEach(qi => {
             qi.addEventListener('input', updateOrderSummary);
             qi.addEventListener('change', updateOrderSummary);

@@ -9,7 +9,6 @@ include __DIR__ . '/includes/header.php';
   <p>Choose a brand to view its products.</p>
   <div class="list-group">
     <?php
-    // try to load dynamic brands from DB
     $q = mysqli_query($conn, "CREATE TABLE IF NOT EXISTS brands (
       brand_id INT AUTO_INCREMENT PRIMARY KEY,
       name VARCHAR(191) NOT NULL,
@@ -26,7 +25,6 @@ include __DIR__ . '/includes/header.php';
         echo '<a href="' . htmlspecialchars($url) . '" class="list-group-item list-group-item-action">' . $img . htmlspecialchars($r['name']) . '</a>';
       }
     } else {
-      // fallback: fetch from products table distinct brand names
       $fallback = mysqli_query($conn, "SELECT DISTINCT brand_name FROM products WHERE brand_name IS NOT NULL AND brand_name != '' ORDER BY brand_name ASC LIMIT 50");
       if ($fallback && mysqli_num_rows($fallback) > 0) {
         while ($f = mysqli_fetch_assoc($fallback)) {
@@ -35,7 +33,6 @@ include __DIR__ . '/includes/header.php';
           echo '<a href="' . htmlspecialchars($url) . '" class="list-group-item list-group-item-action">' . $b . '</a>';
         }
       } else {
-        // last resort static list
         $brands = ['Valentino','Creed','Perfume Dessert','Ian Darcy','Jo Malone'];
         foreach ($brands as $b) {
           $url = '/essence_db/brand.php?brand=' . urlencode($b);

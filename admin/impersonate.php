@@ -2,7 +2,6 @@
 session_start();
 include('../includes/config.php');
 
-// only admin allowed to impersonate
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
     $_SESSION['message'] = 'Access denied.';
     header('Location: ../users/login.php');
@@ -17,7 +16,6 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $target = (int)$_GET['id'];
 
-// prevent impersonating self
 if ($target === (int)$_SESSION['user_id']) {
     $_SESSION['message'] = 'Already this user.';
     header('Location: users.php');
@@ -37,7 +35,6 @@ if ($r['status'] !== 'active') {
     exit();
 }
 
-// save admin id so we can revert later
 $_SESSION['impersonator_id'] = $_SESSION['user_id'];
 $_SESSION['user_id'] = (int)$r['user_id'];
 $_SESSION['email'] = $r['email'];

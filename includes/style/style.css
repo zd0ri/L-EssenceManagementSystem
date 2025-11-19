@@ -54,6 +54,34 @@ h1, h2, h3, .navbar-brand {
   color: var(--chestnut-grove) !important;
 }
 
+/*only to the product area */
+#products .products-grid,
+#products .products-grid ul,
+#products .product-list {
+  list-style-type: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/*list items only*/
+#products .nav li {
+  display: inline-block;
+  font-size: 18px;
+  padding: 15px;
+}
+
+/*4 / 3 / 2 / 1 columns */
+@media (max-width: 1200px) {
+  #products .products-grid .product-tile { width: calc(33.333% - 12px) !important; }
+}
+@media (max-width: 900px) {
+  #popular-products .products-grid .product-tile { width: calc(50% - 9px) !important; }
+}
+@media (max-width: 480px) {
+  #popular-products .products-grid { gap: 12px !important; padding: 8px !important; }
+  #popular-products .products-grid .product-tile { width: 100% !important; }
+}
+
 /* search input */
 .navbar .form-control {
   background: var(--cream-harvest);
@@ -845,14 +873,27 @@ body { line-height: 1.65; }
 /* Catalog/grid overrides to ensure product cards appear side-by-side */
 .products-grid {
   display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+  grid-template-columns: repeat(4, 1fr) !important; /* 4 columns on desktop */
   gap: 18px !important;
+  align-items: start;
 }
+
 .product-tile { display: block; }
 .product-tile .card { display:flex; flex-direction:column; height:100%; }
 .products-grid img.card-img-top, .products-grid .carousel-item img { height:220px !important; object-fit:cover !important; }
 
 /* make titles a fixed height to keep cards uniform */
 .products-grid .product-name { min-height: 2.4em; overflow: hidden; }
+
+/* Responsive breakpoints for grid columns */
+@media (max-width: 1200px) {
+  .products-grid { grid-template-columns: repeat(3, 1fr) !important; }
+}
+@media (max-width: 900px) {
+  .products-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 480px) {
+  .products-grid { grid-template-columns: 1fr !important; }
+}
 
 

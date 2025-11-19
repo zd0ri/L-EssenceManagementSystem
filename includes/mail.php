@@ -1,10 +1,6 @@
 <?php
-// Minimal SMTP mail sender using AUTH LOGIN and optional STARTTLS.
-// Not a full-featured library; intended for simple transactional emails to Mailtrap for testing.
-
 function smtp_send_mail($toEmail, $toName, $subject, $htmlBody) {
-    // Better SMTP sender with clearer error reporting and support for
-    // SSL (port 465) and STARTTLS (port 587). Works with Mailtrap SMTP inbox.
+    
     $host = defined('MAIL_HOST') ? MAIL_HOST : 'sandbox.smtp.mailtrap.io';
     $port = defined('MAIL_PORT') ? MAIL_PORT : 2525;
     $user = defined('MAIL_USERNAME') ? MAIL_USERNAME : b8290cf40811e8;
@@ -20,7 +16,6 @@ function smtp_send_mail($toEmail, $toName, $subject, $htmlBody) {
 
     $debug = [];
 
-    // Choose socket transport: ssl:// for implicit TLS (465), otherwise tcp://
     $transport = ($port == 465) ? 'ssl' : 'tcp';
     $target = "{$transport}://{$host}:{$port}";
 
@@ -54,10 +49,8 @@ function smtp_send_mail($toEmail, $toName, $subject, $htmlBody) {
     $write("EHLO {$hostname}");
     // read EHLO multi-line
     while ($line = $read()) {
-        if (isset($line[3]) && $line[3] == ' ') break; // last line
+        if (isset($line[3]) && $line[3] == ' ') break; 
     }
-
-    // STARTTLS if requested and not already using ssl://
     if ($useTls && $transport !== 'ssl') {
         $write('STARTTLS');
         $resp = $read();
@@ -66,20 +59,19 @@ function smtp_send_mail($toEmail, $toName, $subject, $htmlBody) {
             fclose($socket);
             return false;
         }
-        // enable crypto
+        
         if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
             error_log('smtp_send_mail: STARTTLS negotiation failed');
             fclose($socket);
             return false;
         }
-        // EHLO again
+        
         $write("   {$hostname}");
         while ($line = $read()) {
             if (isset($line[3]) && $line[3] == ' ') break;
         }
     }
 
-    // AUTH LOGIN
     $write('AUTH LOGIN');
     $resp = $read();
     if (substr($resp,0,3) !== '334') {
@@ -102,7 +94,6 @@ function smtp_send_mail($toEmail, $toName, $subject, $htmlBody) {
         return false;
     }
 
-    // MAIL FROM / RCPT TO / DATA
     $write('MAIL FROM: <' . $from . '>');
     $resp = $read();
     if (substr($resp,0,3) !== '250') {
@@ -126,8 +117,7 @@ function smtp_send_mail($toEmail, $toName, $subject, $htmlBody) {
         fclose($socket);
         return false;
     }
-
-    // build headers and body
+    
     $boundary = md5(uniqid(time()));
     $headers = [];
     $headers[] = 'From: ' . $fromName . ' <' . $from . '>';
@@ -147,12 +137,10 @@ function smtp_send_mail($toEmail, $toName, $subject, $htmlBody) {
     $message .= $htmlBody . "\r\n\r\n";
     $message .= '--' . $boundary . '--' . "\r\n.";
 
-    // send data lines and end with CRLF.CRLF
     $write($message);
     $resp = $read();
     if (substr($resp,0,3) !== '250') {
         error_log('smtp_send_mail: message not accepted: ' . trim($resp));
-        // include debug trace in log for help
         foreach ($debug as $d) error_log($d);
         fclose($socket);
         return false;

@@ -1,6 +1,5 @@
 <?php
 session_start();
-// require admin before any output
 require_once(__DIR__ . '/../includes/admin_auth.php');
 include("../includes/config.php");
 include("../includes/header.php");
@@ -33,11 +32,11 @@ $itemCount = mysqli_num_rows($result);
                 <td><?= htmlspecialchars($row['username']) ?></td>
                 <td><?= htmlspecialchars($row['email']) ?></td>
                 <td>
-                    <!-- Roles are retained and not editable here; display as text -->
+                    
                     <span><?= htmlspecialchars($row['role']) ?></span>
                 </td>
                 <td>
-                    <!-- Allow admin to set status explicitly for other users (active/inactive) -->
+                    
                     <?php if ($row['user_id'] != $_SESSION['user_id']): ?>
                         <form method="post" action="user_status_update.php" class="d-flex">
                             <input type="hidden" name="user_id" value="<?= (int)$row['user_id'] ?>">
@@ -58,7 +57,7 @@ $itemCount = mysqli_num_rows($result);
                 </td>
                 <td>
                     <?php if ($row['user_id'] != $_SESSION['user_id']): ?>
-                        <!-- Quick toggle button for convenience (calls user_toggle.php). Status form still available. -->
+                        
                         <a class="btn btn-sm btn-<?= $row['status'] === 'active' ? 'warning' : 'success' ?> me-1" href="user_toggle.php?id=<?= (int)$row['user_id'] ?>">
                             <?= $row['status'] === 'active' ? 'Deactivate' : 'Activate' ?>
                         </a>

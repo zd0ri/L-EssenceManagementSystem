@@ -32,11 +32,9 @@ if (!$customer_id) {
     exit();
 }
 
-// compute total and validate cart
 $total_amount = 0.0;
 $all_cart = isset($_SESSION['cart_products']) && is_array($_SESSION['cart_products']) ? $_SESSION['cart_products'] : [];
 
-// Filter to only selected items from POST
 $selected_ids = isset($_POST['selected_items']) ? array_map('intval', (array)$_POST['selected_items']) : [];
 $cart = [];
 if (!empty($selected_ids)) {
@@ -57,20 +55,17 @@ foreach ($cart as $cart_itm) {
     $total_amount += (float)$cart_itm['item_price'] * (int)$cart_itm['item_qty'];
 }
 
-// accept payment/delivery/remarks from form
 $payment_method = isset($_POST['payment_method']) ? trim($_POST['payment_method']) : 'Online';
 $delivery_method = isset($_POST['delivery_method']) ? trim($_POST['delivery_method']) : 'Standard';
 $remarks = isset($_POST['remarks']) ? trim($_POST['remarks']) : '';
-// decide payment_status based on method
+
 $payment_status = in_array($payment_method, ['Cash on Delivery']) ? 'unpaid' : 'paid';
 
-// PROCESS CHECKOUT before outputting any HTML
 $checkout_success = false;
 $redirect_url = null;
 
 mysqli_begin_transaction($conn);
 try {
-    // Before creating the order, check inventory availability for each cart item (with row locks)
     $checkStmt = mysqli_prepare($conn, 'SELECT quantity FROM inventory WHERE product_id = ? FOR UPDATE');
     $insufficient = [];
     foreach ($cart as $cart_itm) {
@@ -100,18 +95,15 @@ try {
         $_SESSION['message'] = 'Insufficient stock for: ' . implode('; ', $msgs);
         $redirect_url = '/essence_db/cart/view_cart.php';
     } else {
-        // insert order
+        
         $status = 'pending';
 
         $stmt1 = mysqli_prepare($conn, 'INSERT INTO orders (customer_id, total_amount, order_date, status, payment_status, delivery_method, remarks) VALUES (?, ?, NOW(), ?, ?, ?, ?)');
         mysqli_stmt_bind_param($stmt1, 'idssss', $customer_id, $total_amount, $status, $payment_status, $delivery_method, $remarks);
         mysqli_stmt_execute($stmt1);
         $order_id = mysqli_insert_id($conn);
-
-        // prepare order_items and inventory update
+        
     $stmtItem = mysqli_prepare($conn, 'INSERT INTO order_items (order_id, product_id, quantity, price_each) VALUES (?, ?, ?, ?)');
-    // Inventory deduction is deferred until the order is shipped. This prevents premature stock reduction.
-    // $stmtInv = mysqli_prepare($conn, 'UPDATE inventory SET quantity = quantity - ? WHERE product_id = ?');
 
         foreach ($cart as $cart_itm) {
             $product_qty = (int)$cart_itm['item_qty'];
@@ -121,11 +113,8 @@ try {
             mysqli_stmt_bind_param($stmtItem, 'iiid', $order_id, $product_id, $product_qty, $price_each);
             mysqli_stmt_execute($stmtItem);
 
-            // Do NOT deduct inventory now. Inventory will be deducted when admin marks the order as 'shipped'.
-            // This keeps items available for other customers until the seller ships them.
+            // inventory deducted when 'shipped'.
         }
-
-        // insert payment record
         $stmtPay = mysqli_prepare($conn, 'INSERT INTO payments (order_id, payment_method, amount_paid, date_paid, reference_no) VALUES (?, ?, ?, NOW(), ?)');
         $ref = null;
         mysqli_stmt_bind_param($stmtPay, 'isds', $order_id, $payment_method, $total_amount, $ref);
@@ -133,7 +122,6 @@ try {
 
         mysqli_commit($conn);
 
-        // Remove only purchased items from cart, keep unselected items
         if (!empty($_SESSION['cart_products'])) {
             $remaining_cart = [];
             foreach ($_SESSION['cart_products'] as $item) {
@@ -158,12 +146,10 @@ try {
     $redirect_url = '/essence_db/cart/view_cart.php';
 }
 
-// NOW handle redirect if needed before outputting header
 if ($redirect_url !== null) {
     header('Location: ' . $redirect_url);
     exit();
 }
 
-// NOW include header (after all redirects/processing)
 include('../includes/header.php');
 ?>

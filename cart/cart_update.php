@@ -1,21 +1,17 @@
 <?php
 session_start();
-
-// This script updates the cart in session. It should not output anything
-// (no includes that echo) because we redirect after processing.
 require_once __DIR__ . '/../includes/config.php';
 
-// Helper to safe-get POST values
+// safe-get POST values
 function post($k, $default = null) {
     return isset($_POST[$k]) ? $_POST[$k] : $default;
 }
 
-// Add item
 if (post('type') === 'add') {
     $item_qty = (int) post('item_qty', 0);
     $item_id = (int) post('item_id', 0);
     if ($item_id > 0 && $item_qty > 0) {
-        // fetch product info
+        
         $product_id = $item_id;
         $sql = "SELECT p.product_id AS productId, p.brand_name as description, p.image as img_path, p.price as sell_price, i.quantity
                 FROM products p
@@ -43,13 +39,11 @@ if (post('type') === 'add') {
                 $_SESSION['cart_products'] = [];
             }
 
-            // replace any existing entry for this product
+            
             $_SESSION['cart_products'][$product_id] = $new_product;
-            // flash message (no direct 'View Cart' link as requested)
+            
             $_SESSION['success'] = 'Item added to cart.';
 
-            // DEBUG: append cart write to log for troubleshooting session persistence
-            // (temporary) - writes JSON lines to cart_debug.log in the cart folder
             @file_put_contents(__DIR__ . '/cart_debug.log', json_encode([
                 'time' => date('c'),
                 'event' => 'add',
@@ -62,7 +56,6 @@ if (post('type') === 'add') {
     }
 }
 
-// Update quantities or remove items
 if (isset($_POST['product_qty']) && is_array($_POST['product_qty'])) {
     foreach ($_POST['product_qty'] as $key => $value) {
         $k = (int)$key;
@@ -97,11 +90,10 @@ if (isset($_POST['remove_code']) && is_array($_POST['remove_code'])) {
     ]) . PHP_EOL, FILE_APPEND | LOCK_EX);
 }
 
-// determine safe redirect: prefer referrer if within project, otherwise index
 $redirect = '../index.php';
 if (!empty($_SERVER['HTTP_REFERER'])) {
     $ref = $_SERVER['HTTP_REFERER'];
-    // simple safety: only use referrer if it contains the project folder
+    
     if (strpos($ref, '/essence_db') !== false) {
         $redirect = $ref;
     }

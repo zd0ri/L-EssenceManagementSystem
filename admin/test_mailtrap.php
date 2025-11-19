@@ -13,7 +13,7 @@ include_once __DIR__ . '/../includes/mail.php';
         
         <?php
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_test'])) {
-            $testEmail = 'test@example.com'; // Mailtrap catches all emails
+            $testEmail = 'test@example.com'; //catch all emails
             $testSubject = 'L\'Essence - Test Email ' . date('Y-m-d H:i:s');
             $testHtml = '
                 <h2>Test Email from L\'Essence</h2>

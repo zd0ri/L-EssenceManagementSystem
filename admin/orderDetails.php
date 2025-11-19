@@ -1,8 +1,7 @@
 <?php
-// CREATE VIEW orderdetails AS SELECT o.orderinfo_id, c.lname, c.fname, c.addressline, c.town, c.zipcode, c.phone,  i.sell_price, ol.quantity, i.description, o.status FROM customer c INNER JOIN orderinfo o using(customer_id) INNER JOIN orderline ol USING (orderinfo_id) INNER JOIN item i USING(item_id);
 
 session_start();
-// require admin before output
+
 require_once(__DIR__ . '/../includes/admin_auth.php');
 include('../includes/header.php');
 include('../includes/config.php');
@@ -10,7 +9,6 @@ include('../includes/config.php');
 $orderId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $_SESSION['orderId'] = $orderId;
 
-// fetch order and customer info using current schema
 $sql = "SELECT o.order_id, o.status, o.remarks, o.delivery_method, o.payment_status, o.total_amount, c.fullname, c.address, c.contact FROM orders o INNER JOIN customers c ON o.customer_id = c.customer_id WHERE o.order_id = {$orderId} LIMIT 1";
 $result = mysqli_query($conn, $sql);
 $customer = mysqli_fetch_assoc($result);

@@ -130,7 +130,6 @@ foreach (['png','jpg','jpeg'] as $e) {
 <?php include_once __DIR__ . '/../includes/header.php'; ?>
 <div class="container-xl px-4 mt-4">
     <?php include(__DIR__ . "/../includes/alert.php"); ?>
-    <!-- Profile page is informational; top navigation provides links to Profile and My Orders -->
 
     <form id="update-form" action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST" enctype="multipart/form-data">
         <div class="row">
@@ -145,7 +144,6 @@ foreach (['png','jpg','jpeg'] as $e) {
                         </div>
                         <div class="small text-muted">Upload will replace existing image.</div>
 
-                        <!-- Inline account details shown under avatar (read-only) -->
                         <hr />
                         <div class="text-start">
                             <p class="mb-1"><strong class="me-1">Full name:</strong> <?php echo htmlspecialchars($fullname); ?></p>
@@ -189,6 +187,4 @@ foreach (['png','jpg','jpeg'] as $e) {
     </form>
 </div>
     
-    <!-- My Orders moved to standalone page: users/my_orders.php -->
 <?php
-// End of file - single handler and form are above. Removed duplicated block that caused parse errors.

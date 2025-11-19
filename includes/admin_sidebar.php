@@ -1,5 +1,5 @@
 <?php
-// Admin sidebar - shared across all admin pages
+
 $isAdminPage = strpos($_SERVER['REQUEST_URI'], '/admin/') !== false;
 $currentPage = basename($_SERVER['REQUEST_URI'], '.php');
 ?>
