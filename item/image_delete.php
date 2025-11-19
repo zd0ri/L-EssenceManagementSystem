@@ -24,6 +24,6 @@ if ($q && mysqli_num_rows($q) > 0) {
 }
 
 $_SESSION['success'] = 'Image deleted';
-if ($product_id) header('Location: edit.php?id=' . $product_id);
+if ($product_id) header('Location: ../edit.php?id=' . $product_id);
 else header('Location: index.php');
 exit();

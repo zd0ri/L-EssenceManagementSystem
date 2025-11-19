@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../includes/admin_auth.php';
-include __DIR__ . '/../includes/header.php';
+// Load config (DB) before processing POST, but delay header output until after any redirects
 require_once __DIR__ . '/../includes/config.php';
 
 // Ensure settings table exists
@@ -75,6 +75,8 @@ if ($heroRes && !empty($heroRes['setting_value'])) {
   $heroImage = $heroRes['setting_value'];
 }
 ?>
+
+<?php include __DIR__ . '/../includes/header.php'; ?>
 
 <div class="admin-page">
   <div class="admin-card">
