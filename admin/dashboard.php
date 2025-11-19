@@ -39,9 +39,10 @@ include __DIR__ . '/../includes/config.php';
         <div class="admin-card" style="padding: 20px; text-align: center;">
           <h4 style="margin: 0; color: #5A4939;">
             <?php
+            // Show orders in the last 30 days, excluding refunded orders
             $start_date = date('Y-m-d', strtotime('-30 days'));
             $end_date = date('Y-m-d');
-            $q = mysqli_query($conn, "SELECT COUNT(*) as cnt FROM orders WHERE payment_status = 'paid' AND order_date BETWEEN '$start_date' AND '$end_date'");
+            $q = mysqli_query($conn, "SELECT COUNT(*) as cnt FROM orders WHERE payment_status != 'refunded' AND DATE(order_date) BETWEEN '$start_date' AND '$end_date'");
             $r = mysqli_fetch_assoc($q);
             echo $r['cnt'] ?? 0;
             ?>
@@ -65,9 +66,10 @@ include __DIR__ . '/../includes/config.php';
         <div class="admin-card" style="padding: 20px; text-align: center;">
           <h4 style="margin: 0; color: rgb(109, 96, 83);">
             ₱<?php
+            // Revenue for the last 30 days (only paid orders). Use DATE(order_date) for inclusive day range
             $start_date = date('Y-m-d', strtotime('-30 days'));
             $end_date = date('Y-m-d');
-            $q = mysqli_query($conn, "SELECT SUM(total_amount) as total FROM orders WHERE payment_status = 'paid' AND order_date BETWEEN '$start_date' AND '$end_date'");
+            $q = mysqli_query($conn, "SELECT SUM(total_amount) as total FROM orders WHERE payment_status = 'paid' AND DATE(order_date) BETWEEN '$start_date' AND '$end_date'");
             $r = mysqli_fetch_assoc($q);
             echo number_format((float)($r['total'] ?? 0), 2);
             ?>
@@ -114,7 +116,8 @@ include __DIR__ . '/../includes/config.php';
           </thead>
           <tbody>
 <?php
-$q = mysqli_query($conn, "SELECT p.product_id, p.brand_name, p.price, i.quantity, COALESCE((SELECT path FROM product_images WHERE product_id = p.product_id ORDER BY product_image_id ASC LIMIT 1), p.image) AS image_path FROM products p INNER JOIN inventory i ON p.product_id = i.product_id WHERE p.status = 'available' ORDER BY p.product_id DESC LIMIT 8");
+// Select product_name and join brands table for correct brand display. Fall back to legacy p.brand_name if needed.
+$q = mysqli_query($conn, "SELECT p.product_id, COALESCE(p.product_name, p.brand_name, '') AS product_name, COALESCE(b.name, p.brand_name, '') AS brand_name, p.price, i.quantity, COALESCE((SELECT path FROM product_images WHERE product_id = p.product_id ORDER BY product_image_id ASC LIMIT 1), p.image) AS image_path FROM products p LEFT JOIN brands b ON p.brand_id = b.brand_id INNER JOIN inventory i ON p.product_id = i.product_id WHERE p.status = 'available' ORDER BY p.product_id DESC LIMIT 8");
 if ($q && mysqli_num_rows($q) > 0) {
   while ($r = mysqli_fetch_assoc($q)) {
     $img = $r['image_path'];
@@ -124,7 +127,7 @@ if ($q && mysqli_num_rows($q) > 0) {
     $imgUrl = preg_match('#^https?://#i', $p) ? $p : $baseUrl . ltrim($p,'/');
     echo "<tr>";
     echo "<td style='width: 72px;'><img src='" . htmlspecialchars($imgUrl) . "' class='table-img' onerror=\"this.src='/essence_db/images/placeholder.png'\" style='width: 72px; height: 72px; object-fit: cover; border-radius: 8px; font-color: #2C1A11;'></td>";
-    echo "<td>" . htmlspecialchars($r['brand_name']) . "</td>";
+    echo "<td>" . htmlspecialchars($r['product_name']) . "</td>";
     echo "<td>" . htmlspecialchars($r['brand_name']) . "</td>";
     echo "<td>₱" . number_format((float)$r['price'],2) . "</td>";
     echo "<td><span class='badge " . ($r['quantity'] > 10 ? 'badge-success' : ($r['quantity'] > 0 ? 'badge-warning' : 'badge-danger')) . "'>" . (int)$r['quantity'] . "</span></td>";

@@ -8,7 +8,8 @@ $qstr = isset($_GET['q']) ? trim($_GET['q']) : '';
 $where = '';
 if ($qstr !== '') {
   $esc = mysqli_real_escape_string($conn, $qstr);
-  $where = "AND (p.brand_name LIKE '%{$esc}%' OR p.scent_type LIKE '%{$esc}%' OR p.description LIKE '%{$esc}%')";
+  // allow searching by brand name (brands.name), legacy p.brand_name, product_name, scent or description
+  $where = "AND (COALESCE(b.name, p.brand_name) LIKE '%{$esc}%' OR p.product_name LIKE '%{$esc}%' OR p.scent_type LIKE '%{$esc}%' OR p.description LIKE '%{$esc}%')";
 }
 
 // pagination
@@ -17,7 +18,7 @@ $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $offset = ($page - 1) * $perPage;
 
 // get total count
-$countSql = "SELECT COUNT(p.product_id) AS cnt FROM products p INNER JOIN inventory i ON p.product_id = i.product_id WHERE p.status = 'available' {$where}";
+$countSql = "SELECT COUNT(p.product_id) AS cnt FROM products p LEFT JOIN brands b ON p.brand_id = b.brand_id INNER JOIN inventory i ON p.product_id = i.product_id WHERE p.status = 'available' {$where}";
 $cntRes = mysqli_query($conn, $countSql);
 $totalItems = 0;
 if ($cntRes) {
@@ -48,6 +49,7 @@ if ($cntRes) {
           <thead>
             <tr>
               <th style="width: 80px;">Image</th>
+              <th>Product</th>
               <th>Brand</th>
               <th>Description</th>
               <th style="width: 70px;">Qty</th>
@@ -57,7 +59,7 @@ if ($cntRes) {
           </thead>
           <tbody>
 <?php
-$sql = "SELECT p.product_id, p.brand_name, p.scent_type, p.description, p.price, i.quantity, COALESCE((SELECT path FROM product_images WHERE product_id = p.product_id ORDER BY product_image_id ASC LIMIT 1), p.image) AS image_path FROM products p INNER JOIN inventory i ON p.product_id = i.product_id WHERE p.status = 'available' {$where} ORDER BY p.product_id DESC LIMIT {$perPage} OFFSET {$offset}";
+$sql = "SELECT p.product_id, COALESCE(p.product_name, p.brand_name, '') AS product_name, COALESCE(b.name, p.brand_name, '') AS brand_name, p.scent_type, p.description, p.price, i.quantity, COALESCE((SELECT path FROM product_images WHERE product_id = p.product_id ORDER BY product_image_id ASC LIMIT 1), p.image) AS image_path FROM products p LEFT JOIN brands b ON p.brand_id = b.brand_id INNER JOIN inventory i ON p.product_id = i.product_id WHERE p.status = 'available' {$where} ORDER BY p.product_id DESC LIMIT {$perPage} OFFSET {$offset}";
 $res = mysqli_query($conn, $sql);
 if ($res && mysqli_num_rows($res) > 0) {
   while ($row = mysqli_fetch_assoc($res)) {
@@ -70,6 +72,7 @@ if ($res && mysqli_num_rows($res) > 0) {
     
     echo "<tr>";
     echo "<td style='padding: 8px;'><img src='" . htmlspecialchars($imgUrl) . "' style='width: 70px; height: 70px; object-fit: cover; border-radius: 6px;' onerror=\"this.style.display='none'\"></td>";
+    echo "<td>" . htmlspecialchars($row['product_name']) . "</td>";
     echo "<td>" . htmlspecialchars($row['brand_name']) . "</td>";
     echo "<td>" . htmlspecialchars(substr($row['description'] ?? '', 0, 40)) . "...</td>";
     echo "<td class='text-center'>" . (int)$row['quantity'] . "</td>";
@@ -82,7 +85,7 @@ if ($res && mysqli_num_rows($res) > 0) {
     echo "</tr>";
   }
 } else {
-  echo "<tr><td colspan='6' class='text-center text-muted'>No products found.</td></tr>";
+  echo "<tr><td colspan='7' class='text-center text-muted'>No products found.</td></tr>";
 }
 ?>
           </tbody>

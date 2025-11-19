@@ -2,8 +2,8 @@
 session_start();
 // require login before sending any output
 require_once(__DIR__ . '/../includes/auth.php');
-include("../includes/header.php");
-include("../includes/config.php");
+// Load config (DB connection) before processing POST, but delay header output until after redirects
+include(__DIR__ . '/../includes/config.php');
 // after auth, we have a user id
 $current_user_id = (int)$_SESSION['user_id'];
 
@@ -127,8 +127,9 @@ foreach (['png','jpg','jpeg'] as $e) {
 }
 
 ?>
+<?php include_once __DIR__ . '/../includes/header.php'; ?>
 <div class="container-xl px-4 mt-4">
-    <?php include("../includes/alert.php"); ?>
+    <?php include(__DIR__ . "/../includes/alert.php"); ?>
     <!-- Profile page is informational; top navigation provides links to Profile and My Orders -->
 
     <form id="update-form" action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST" enctype="multipart/form-data">

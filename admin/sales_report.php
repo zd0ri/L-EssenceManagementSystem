@@ -19,9 +19,11 @@ $end = isset($_GET['end']) ? $_GET['end'] : date('Y-m-d');
 // Export CSV logic removed
 
 // summary queries (prepared)
-$summary_sql = "SELECT COALESCE(SUM(o.total_amount),0) AS total_sales, COUNT(DISTINCT o.order_id) AS total_orders
+$summary_sql = "SELECT COALESCE(SUM(o.total_amount),0) AS total_sales,
+  COUNT(DISTINCT o.order_id) AS total_orders
 FROM orders o
-WHERE o.order_date BETWEEN ? AND ? AND o.payment_status = 'paid'";
+WHERE DATE(o.order_date) BETWEEN ? AND ?
+  AND o.payment_status != 'refunded'";
 $stmt = mysqli_prepare($conn, $summary_sql);
 mysqli_stmt_bind_param($stmt, 'ss', $start, $end);
 mysqli_stmt_execute($stmt);
@@ -31,7 +33,7 @@ $summary = $res ? mysqli_fetch_assoc($res) : ['total_sales' => 0, 'total_orders'
 $items_sql = "SELECT COALESCE(SUM(oi.quantity),0) AS items_sold
 FROM order_items oi
 JOIN orders o ON oi.order_id = o.order_id
-WHERE o.order_date BETWEEN ? AND ? AND o.payment_status = 'paid'";
+WHERE DATE(o.order_date) BETWEEN ? AND ? AND o.payment_status = 'paid'";
 $stmt2 = mysqli_prepare($conn, $items_sql);
 mysqli_stmt_bind_param($stmt2, 'ss', $start, $end);
 mysqli_stmt_execute($stmt2);
@@ -53,7 +55,7 @@ SELECT
 FROM order_items oi
 JOIN orders o ON oi.order_id = o.order_id
 JOIN products p ON oi.product_id = p.product_id
-WHERE o.order_date BETWEEN ? AND ?
+WHERE DATE(o.order_date) BETWEEN ? AND ?
   AND o.payment_status = 'paid'
 GROUP BY p.product_id, p.brand_name, p.scent_type
 HAVING qty_sold > 0

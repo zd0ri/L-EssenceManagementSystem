@@ -83,7 +83,9 @@ $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
   <?php if (count($products) === 0): ?>
     <div class="alert alert-info">No available products found for this brand.</div>
   <?php else: ?>
-    <div class="row g-4">
+    <div id="popular-products">
+      <div class="container">
+        <div class="products-grid">
       <?php foreach ($products as $row):
         $brandName = htmlspecialchars($row['brand_name']);
         $scent = htmlspecialchars($row['scent_type']);
@@ -97,7 +99,7 @@ $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
         }
         if (empty($imgs) && !empty($rawImage)) $imgs[] = $rawImage;
       ?>
-      <div class="col-lg-3 col-md-4 col-sm-6">
+      <div>
         <div class="card shadow-sm text-center p-2 product-card">
           <?php
           if (count($imgs) === 0) {
@@ -127,7 +129,8 @@ $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
               <div class="badge-bestseller">Best seller</div>
             <?php endif; ?>
             <div class="card-body">
-              <h5 class="card-title product-name"><?php echo $brandName; ?></h5>
+              <h5 class="card-title product-name"><?php echo htmlspecialchars($row['product_name'] ?? $brandName); ?></h5>
+              <div class="text-muted small"><?php echo htmlspecialchars($brandName); ?></div>
               <p class="text-muted small"><?php echo $scent; ?></p>
               <p class="fw-bold">₱<?php echo $price; ?></p>
             <form method="POST" action="./cart/cart_update.php" class="mt-2">
@@ -143,6 +146,8 @@ $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
         </div>
       </div>
       <?php endforeach; ?>
+        </div>
+      </div>
     </div>
   <?php endif; ?>
 </div>
