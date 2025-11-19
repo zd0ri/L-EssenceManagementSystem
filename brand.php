@@ -99,7 +99,7 @@ $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
         }
         if (empty($imgs) && !empty($rawImage)) $imgs[] = $rawImage;
       ?>
-      <div>
+      <div class="product-tile">
         <div class="card shadow-sm text-center p-2 product-card">
           <?php
           if (count($imgs) === 0) {
