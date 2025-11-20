@@ -2,9 +2,7 @@
 session_start();
 require_once __DIR__ . '/includes/config.php';
 
-// helper to mask bad words
 function mask_bad_words($text) {
-    // list of words to mask (lowercase)
     $bad = [
         'shit','fuck','bitch','gago','putangina','tangina','asshole','damn','crap'
     ];
@@ -52,7 +50,7 @@ $createReviews = "CREATE TABLE IF NOT EXISTS reviews (
     review_text TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  -- allow multiple reviews per user/product
+ 
   KEY idx_product_id (product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
   $checkIdx = mysqli_query($conn, "SHOW INDEX FROM reviews WHERE Key_name = 'product_user_unique'");
@@ -72,10 +70,10 @@ if ($id <= 0) {
     exit();
 }
 
-// handle review POST (add or update)
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
     $user_id = (int)$_SESSION['user_id'];
-    // find customer_id
+ 
     $cust_q = mysqli_prepare($conn, "SELECT customer_id FROM customers WHERE user_id = ? LIMIT 1");
     if ($cust_q) {
         mysqli_stmt_bind_param($cust_q, 'i', $user_id);
@@ -86,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
     } else {
         $customer_id = null;
     }
-    // verify the user has purchased this product
+    
     $hasBought = false;
     if ($customer_id) {
       $p = mysqli_prepare($conn, "SELECT oi.order_item_id FROM order_items oi JOIN orders o ON oi.order_id = o.order_id WHERE oi.product_id = ? AND o.customer_id = ? LIMIT 1");
@@ -104,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
     }
     if (isset($_POST['delete_review']) && isset($_POST['review_id'])) {
       $rid = (int)$_POST['review_id'];
-      // verify
+      
       $qv = mysqli_prepare($conn, "SELECT review_image FROM reviews WHERE review_id = ? AND user_id = ? LIMIT 1");
       if ($qv) {
         mysqli_stmt_bind_param($qv, 'ii', $rid, $user_id);
@@ -127,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
       header('Location: product.php?id=' . $id . '#reviews');
       exit();
     }
-    // collect rating and review
+    
     $rating = isset($_POST['rating']) ? (int)$_POST['rating'] : 5;
     if ($rating < 1) $rating = 1; if ($rating > 5) $rating = 5;
     $review_text = isset($_POST['review_text']) ? trim($_POST['review_text']) : '';
@@ -136,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
     if (!empty($_FILES['review_image']) && $_FILES['review_image']['error'] !== UPLOAD_ERR_NO_FILE) {
       $up = $_FILES['review_image'];
       if ($up['error'] === UPLOAD_ERR_OK) {
-        // validate size (<=5MB) and mime
+        
         if ($up['size'] <= 5 * 1024 * 1024) {
           $finfo = finfo_open(FILEINFO_MIME_TYPE);
           $mime = finfo_file($finfo, $up['tmp_name']);
@@ -157,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
     }
     if (isset($_POST['review_id']) && (int)$_POST['review_id'] > 0) {
       $rid = (int)$_POST['review_id'];
-      // verify
+     
       $sv = mysqli_prepare($conn, "SELECT review_image FROM reviews WHERE review_id = ? AND user_id = ? LIMIT 1");
       $existingImage = null;
       $canEdit = false;

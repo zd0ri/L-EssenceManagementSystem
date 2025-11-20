@@ -1,7 +1,7 @@
 <?php
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
-// If user is not logged in, redirect to login with message
+
 if (empty($_SESSION['user_id'])) {
     $_SESSION['message'] = 'Please login to access that page.';
     

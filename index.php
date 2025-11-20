@@ -21,9 +21,7 @@ include __DIR__ . '/includes/header.php';
       </div>
     </div>
     <?php
-    // Load hero image from DB or use fallback
-    $heroImg = '/essence_db/images/hero.jpg';
-    // Ensure site_settings table exists
+    $heroImg = '/essence_db/uploads/hero.jpg';
     mysqli_query($conn, "CREATE TABLE IF NOT EXISTS site_settings (
       setting_id INT AUTO_INCREMENT PRIMARY KEY,
       setting_key VARCHAR(191) NOT NULL UNIQUE,
@@ -44,7 +42,7 @@ include __DIR__ . '/includes/header.php';
   </div>
 </section>
 
-<!-- Featured Brands section (separate block) -->
+
 <section class="py-5 featured-brands">
   <div class="container">
     <h3 class="mb-3 text-center">Featured Brands</h3>
@@ -64,7 +62,7 @@ include __DIR__ . '/includes/header.php';
         while ($br = mysqli_fetch_assoc($rb)) $brandRows[] = $br;
       }
       if (count($brandRows) === 0) {
-        // fallback static list
+        
         $featuredBrands = ['Valentino','Creed','Perfume Dessert','Ian Darcy','Jo Malone', 'Dior', 'Tom Ford', 'Calvin Klein', 'Clinique', 'D&G'];
         foreach ($featuredBrands as $b) {
           echo '<a href="/essence_db/brand.php?brand=' . urlencode($b) . '"><img src="" alt="' . htmlspecialchars($b) . '" title="' . htmlspecialchars($b) . '" style="height:48px;object-fit:contain;" onerror="this.style.display=\'none\'" /></a>';
@@ -91,8 +89,6 @@ include __DIR__ . '/includes/header.php';
       <a href="/essence_db/brands.php" class="btn btn-sm btn-outline-secondary">Browse Brands</a>
     </div>
 
-    <!-- Brands preview section (brand-logos strip from DB if available) -->
-    <!-- Featured brands moved to its own section below the hero -->
 
     <?php
     $search = '';
@@ -104,9 +100,9 @@ include __DIR__ . '/includes/header.php';
       echo '<div class="search-result">Showing results for <strong>' . htmlspecialchars($search) . '</strong></div>';
     }
 
-    // show best-selling products first (based on order_items), fall back to product id
+    
     if (trim($whereExtra) === '') {
-      // show only products that have been sold
+    
       $sql = "SELECT p.product_id AS productId, p.product_name, b.name as brand_name, p.scent_type AS scent_type, p.price, p.image, i.quantity,
       COALESCE(SUM(oi.quantity),0) AS sales_count
     FROM products p
@@ -118,7 +114,7 @@ include __DIR__ . '/includes/header.php';
     HAVING COALESCE(SUM(oi.quantity),0) > 0
     ORDER BY sales_count DESC, p.product_id ASC";
     } else {
-      // when searching, include items regardless of sales
+      
       $sql = "SELECT p.product_id AS productId, p.product_name, b.name as brand_name, p.scent_type AS scent_type, p.price, p.image, i.quantity,
       COALESCE(SUM(oi.quantity),0) AS sales_count
     FROM products p
@@ -160,7 +156,7 @@ include __DIR__ . '/includes/header.php';
 
       <div class="product-item">
         <div class="card shadow-sm product-card">
-          <!-- Product Image / Carousel -->
+          
           <div style="position: relative; overflow: hidden; border-radius: 12px 12px 0 0;">
             <?php
             if (count($imgs) === 0) {
@@ -185,13 +181,13 @@ include __DIR__ . '/includes/header.php';
               echo '</div>';
             }
             ?>
-            <!-- Best Seller Badge -->
+            
             <?php if (!empty($row['sales_count']) && (int)$row['sales_count'] >= 3): ?>
               <div class="badge-bestseller">Best seller</div>
             <?php endif; ?>
           </div>
 
-          <!-- Card Body -->
+        
           <div class="card-body">
             <h5 class="card-title product-name"><a href="/essence_db/brand.php?brand=<?php echo urlencode($brand); ?>"><?php echo $brand; ?></a></h5>
             <p class="product-scent"><?php echo $scent; ?></p>

@@ -30,7 +30,7 @@ if ($brand_id > 0) {
             }
         }
     }
-    // If no products found
+    
     if ($brand_display === '') {
         $bq = mysqli_prepare($conn, "SELECT name FROM brands WHERE brand_id = ? LIMIT 1");
         if ($bq) {
@@ -147,4 +147,3 @@ $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
   <?php endif; ?>
 </div>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>

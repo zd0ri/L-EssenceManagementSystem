@@ -870,10 +870,9 @@ body { line-height: 1.65; }
   .hero .hero-inner { grid-template-columns: 1fr; }
 }
 
-/* Catalog/grid overrides to ensure product cards appear side-by-side */
 .products-grid {
   display: grid !important;
-  grid-template-columns: repeat(4, 1fr) !important; /* 4 columns on desktop */
+  grid-template-columns: repeat(4, 1fr) !important; 
   gap: 18px !important;
   align-items: start;
 }
@@ -882,10 +881,8 @@ body { line-height: 1.65; }
 .product-tile .card { display:flex; flex-direction:column; height:100%; }
 .products-grid img.card-img-top, .products-grid .carousel-item img { height:220px !important; object-fit:cover !important; }
 
-/* make titles a fixed height to keep cards uniform */
 .products-grid .product-name { min-height: 2.4em; overflow: hidden; }
 
-/* Responsive breakpoints for grid columns */
 @media (max-width: 1200px) {
   .products-grid { grid-template-columns: repeat(3, 1fr) !important; }
 }

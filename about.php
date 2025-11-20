@@ -169,7 +169,7 @@ body {
   color: var(--text-light);
 }
 
-/* Responsive Adjustments */
+
 @media (max-width: 768px) {
   .about-hero h1 { font-size: 2.2rem; }
 }
@@ -178,7 +178,7 @@ body {
 }
 </style>
 
-<!-- Hero -->
+
 <section class="about-hero">
   <div class="container">
     <h1>About <span style="font-style: italic;">L'Essence</span> Perfume Retailing</h1>
@@ -186,7 +186,7 @@ body {
   </div>
 </section>
 
-<!-- Our Story -->
+
 <section class="about-section text-center">
   <div class="container">
     <h2>Our Story</h2>
@@ -200,7 +200,7 @@ body {
   </div>
 </section>
 
-<!-- Values -->
+
 <section class="values text-center">
   <div class="container">
     <h2>Our Core Values</h2>

@@ -1,13 +1,13 @@
 <?php
 session_start();
-// require login before sending any output
+
 require_once(__DIR__ . '/../includes/auth.php');
-// Load config (DB connection) before processing POST, but delay header output until after redirects
+
 include(__DIR__ . '/../includes/config.php');
-// after auth, we have a user id
+
 $current_user_id = (int)$_SESSION['user_id'];
 
-// Handle POST (single form: profile fields + optional image)
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $posted_fullname = isset($_POST['fullname']) ? trim($_POST['fullname']) : '';
     $posted_contact = isset($_POST['contact']) ? trim($_POST['contact']) : '';
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
-    // check email uniqueness if changed
+    
     if (!empty($posted_email) && isset($_SESSION['email']) && $posted_email !== $_SESSION['email']) {
         $posted_email_esc = mysqli_real_escape_string($conn, $posted_email);
         $chk = mysqli_query($conn, "SELECT user_id FROM users WHERE email = '{$posted_email_esc}' AND user_id != {$current_user_id} LIMIT 1");
@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // process uploaded image if present
+ 
     if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] !== UPLOAD_ERR_NO_FILE) {
         $file = $_FILES['profile_image'];
         $allowed = ["image/jpeg" => 'jpg', "image/jpg" => 'jpg', "image/png" => 'png'];
@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $uploadDir = __DIR__ . '/../uploads';
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
         $target = $uploadDir . "/profile_{$current_user_id}.{$ext}";
-        // remove old variants
+        
         foreach (['png','jpg','jpeg'] as $e) {
             $old = $uploadDir . "/profile_{$current_user_id}.{$e}";
             if (file_exists($old) && pathinfo($old, PATHINFO_EXTENSION) !== $ext) @unlink($old);
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // update users.email if changed
+    
     if (!empty($posted_email) && (!isset($_SESSION['email']) || $posted_email !== $_SESSION['email'])) {
         $posted_email_esc = mysqli_real_escape_string($conn, $posted_email);
         $upd = mysqli_query($conn, "UPDATE users SET email = '{$posted_email_esc}' WHERE user_id = {$current_user_id}");
@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['email'] = $posted_email;
     }
 
-    // insert or update customers
+   
     $fullname_esc = mysqli_real_escape_string($conn, $posted_fullname);
     $contact_esc = mysqli_real_escape_string($conn, $posted_contact);
     $address_esc = mysqli_real_escape_string($conn, $posted_address);
@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit();
 }
 
-// load latest customer data to prefill form
+
 $fullname = '';
 $contact = '';
 $address = '';
@@ -115,7 +115,7 @@ if ($r && mysqli_num_rows($r) > 0) {
     if (empty($email_input) && !empty($row['email'])) $email_input = $row['email'];
 }
 
-// determine avatar URL
+
 $avatarUrl = '/essence_db/uploads/default-avatar.png';
 $uploadDir = __DIR__ . '/../uploads';
 foreach (['png','jpg','jpeg'] as $e) {

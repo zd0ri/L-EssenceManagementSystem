@@ -14,7 +14,6 @@ require_once __DIR__ . '/../includes/config.php';
 <body class="login-body">
     <div class="login-container">
         <div class="login-wrapper">
-            <!-- Left: Register Form -->
             <div class="login-form-section">
                 <div class="login-form-inner">
                     <?php include __DIR__ . '/../includes/alert.php'; ?>

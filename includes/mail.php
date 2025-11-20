@@ -1,10 +1,10 @@
 <?php
 function smtp_send_mail($toEmail, $toName, $subject, $htmlBody) {
     
-    $host = defined('MAIL_HOST') ? MAIL_HOST : 'sandbox.smtp.mailtrap.io';
+    $host = defined('MAIL_HOST') ? MAIL_HOST : 'smtp.mailtrap.io';
     $port = defined('MAIL_PORT') ? MAIL_PORT : 2525;
-    $user = defined('MAIL_USERNAME') ? MAIL_USERNAME : b8290cf40811e8;
-    $pass = defined('MAIL_PASSWORD') ? MAIL_PASSWORD : 633fb029128043;
+    $user = defined('MAIL_USERNAME') ? MAIL_USERNAME : 'b8290cf40811e8';
+    $pass = defined('MAIL_PASSWORD') ? MAIL_PASSWORD : '633fb029128043';
     $from = defined('MAIL_FROM_ADDRESS') ? MAIL_FROM_ADDRESS : 'lessenthera@gmail.com';
     $fromName = defined('MAIL_FROM_NAME') ? MAIL_FROM_NAME : 'L Essence';
     $useTls = defined('MAIL_USE_TLS') ? MAIL_USE_TLS : false;
@@ -59,14 +59,15 @@ function smtp_send_mail($toEmail, $toName, $subject, $htmlBody) {
             fclose($socket);
             return false;
         }
-        
+
         if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
             error_log('smtp_send_mail: STARTTLS negotiation failed');
             fclose($socket);
             return false;
         }
-        
-        $write("   {$hostname}");
+
+        // Re-issue EHLO after STARTTLS
+        $write("EHLO {$hostname}");
         while ($line = $read()) {
             if (isset($line[3]) && $line[3] == ' ') break;
         }
@@ -135,7 +136,17 @@ function smtp_send_mail($toEmail, $toName, $subject, $htmlBody) {
     $message .= '--' . $boundary . "\r\n";
     $message .= 'Content-Type: text/html; charset="utf-8"' . "\r\n\r\n";
     $message .= $htmlBody . "\r\n\r\n";
-    $message .= '--' . $boundary . '--' . "\r\n.";
+    $message .= '--' . $boundary . '--' . "\r\n";
+
+    // Dot-stuffing: escape any line that begins with a dot
+    $lines = preg_split("/\r\n|\n|\r/", $message);
+    foreach ($lines as &$l) {
+        if (strlen($l) > 0 && $l[0] === '.') $l = '.' . $l;
+    }
+    $message = implode("\r\n", $lines) . "\r\n";
+
+    // Terminate DATA with single dot on a line per SMTP spec
+    $message .= ".\r\n";
 
     $write($message);
     $resp = $read();

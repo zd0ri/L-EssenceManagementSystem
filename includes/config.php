@@ -11,7 +11,7 @@ if (file_exists(__DIR__ . '/config.local.php')) {
 	include __DIR__ . '/config.local.php';
 }
 
-// --- Mail configuration (for Mailtrap) ---
+
 if (!defined('MAIL_HOST')) define('MAIL_HOST', 'smtp.mailtrap.io');
 if (!defined('MAIL_PORT')) define('MAIL_PORT', 2525); 
 if (!defined('MAIL_USERNAME')) define('MAIL_USERNAME', 'b8290cf40811e8');

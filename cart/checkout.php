@@ -122,7 +122,52 @@ try {
 
         mysqli_commit($conn);
 
-        if (!empty($_SESSION['cart_products'])) {
+        // send order confirmation email to customer (if email available)
+        include_once __DIR__ . '/../includes/mail.php';
+        $custInfoStmt = mysqli_prepare($conn, 'SELECT fullname, email FROM customers WHERE customer_id = ? LIMIT 1');
+        $cust = null;
+        if ($custInfoStmt) {
+            mysqli_stmt_bind_param($custInfoStmt, 'i', $customer_id);
+            mysqli_stmt_execute($custInfoStmt);
+            $cres = mysqli_stmt_get_result($custInfoStmt);
+            $cust = $cres ? mysqli_fetch_assoc($cres) : null;
+        }
+
+        if ($cust && !empty($cust['email'])) {
+            $items = [];
+            $si = mysqli_prepare($conn, 'SELECT oi.product_id, oi.quantity, oi.price_each, p.product_name, b.name as brand_name FROM order_items oi LEFT JOIN products p ON oi.product_id = p.product_id LEFT JOIN brands b ON p.brand_id = b.brand_id WHERE oi.order_id = ?');
+            if ($si) {
+                mysqli_stmt_bind_param($si, 'i', $order_id);
+                mysqli_stmt_execute($si);
+                $rsi = mysqli_stmt_get_result($si);
+                if ($rsi) {
+                    while ($row = mysqli_fetch_assoc($rsi)) $items[] = $row;
+                }
+            }
+
+            $html = "<h3>Order #{$order_id} - Confirmation</h3>";
+            $html .= "<p>Hi " . htmlspecialchars($cust['fullname']) . ",</p>";
+            $html .= "<p>Thank you for your order. Here are the details:</p>";
+            $html .= "<table style='width:100%;border-collapse:collapse'>";
+            $html .= "<tr><th style='text-align:left;border-bottom:1px solid #ddd;padding:8px'>Product</th><th style='text-align:right;border-bottom:1px solid #ddd;padding:8px'>Qty</th><th style='text-align:right;border-bottom:1px solid #ddd;padding:8px'>Price</th><th style='text-align:right;border-bottom:1px solid #ddd;padding:8px'>Subtotal</th></tr>";
+            $grand = 0.0;
+            foreach ($items as $it) {
+                $sub = (float)$it['quantity'] * (float)$it['price_each'];
+                $grand += $sub;
+                $productDisplay = htmlspecialchars($it['product_name']) . (isset($it['brand_name']) && !empty($it['brand_name']) ? ' (' . htmlspecialchars($it['brand_name']) . ')' : '');
+                $html .= "<tr><td style='padding:8px;border-bottom:1px solid #f1f1f1'>" . $productDisplay . "</td><td style='padding:8px;border-bottom:1px solid #f1f1f1;text-align:right'>" . (int)$it['quantity'] . "</td><td style='padding:8px;border-bottom:1px solid #f1f1f1;text-align:right'>₱" . number_format((float)$it['price_each'],2) . "</td><td style='padding:8px;border-bottom:1px solid #f1f1f1;text-align:right'>₱" . number_format($sub,2) . "</td></tr>";
+            }
+            $html .= "<tr><td colspan='3' style='padding:8px;text-align:right'><strong>Total</strong></td><td style='padding:8px;text-align:right'><strong>₱" . number_format($grand,2) . "</strong></td></tr>";
+            $html .= "</table>";
+            $html .= "<p>If you have any questions reply to this email or contact our support.</p>";
+
+            $sent = smtp_send_mail($cust['email'], $cust['fullname'], "Order #{$order_id} Confirmation", $html);
+            if (!$sent) {
+                error_log('Failed to send order confirmation email for order ' . $order_id);
+            }
+        }
+
+    if (!empty($_SESSION['cart_products'])) {
             $remaining_cart = [];
             foreach ($_SESSION['cart_products'] as $item) {
                 if (!in_array((int)$item['item_id'], $selected_ids)) {

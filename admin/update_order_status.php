@@ -45,19 +45,16 @@ if ($stmt) {
     mysqli_stmt_bind_param($stmt, 'si', $status, $order_id);
     if (mysqli_stmt_execute($stmt)) {
         $_SESSION['success'] = 'Order status updated.';
-        // After updating status, handle special cases:
-        // - If status is 'shipped', deduct inventory now (if not already deducted for this order).
-        // - If status is 'cancelled' and payment was not COD, mark payment refunded.
-
-        // Ensure orders table has a stock_reduced flag (create if missing)
+        
+        
         $colCheck = mysqli_query($conn, "SELECT COUNT(*) AS cnt FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'orders' AND COLUMN_NAME = 'stock_reduced'");
         $colRow = $colCheck ? mysqli_fetch_assoc($colCheck) : null;
         if (!$colRow || (int)$colRow['cnt'] === 0) {
-            // try to add column (best-effort)
+           
             @mysqli_query($conn, "ALTER TABLE orders ADD COLUMN stock_reduced TINYINT(1) NOT NULL DEFAULT 0");
         }
 
-        // fetch current order row to inspect stock_reduced and payment_status
+        
         $oq = mysqli_prepare($conn, 'SELECT stock_reduced, payment_status FROM orders WHERE order_id = ? LIMIT 1');
         $stockReduced = 0;
         $currentPaymentStatus = '';
@@ -72,7 +69,7 @@ if ($stmt) {
             }
         }
 
-        // If marking as shipped, deduct inventory now (only once)
+        
         if ($status === 'shipped' && $stockReduced === 0) {
             mysqli_begin_transaction($conn);
             try {
@@ -85,12 +82,12 @@ if ($stmt) {
                         while ($row = mysqli_fetch_assoc($rsi)) {
                             $pid = (int)$row['product_id'];
                             $qty = (int)$row['quantity'];
-                            // decrement inventory (best-effort); use where quantity >= qty to avoid negative results
+                           
                             mysqli_query($conn, "UPDATE inventory SET quantity = GREATEST(0, quantity - {$qty}) WHERE product_id = {$pid}");
                         }
                     }
                 }
-                // mark stock_reduced
+               
                 mysqli_query($conn, "UPDATE orders SET stock_reduced = 1 WHERE order_id = {$order_id}");
                 mysqli_commit($conn);
             } catch (Exception $e) {
@@ -100,7 +97,7 @@ if ($stmt) {
         }
 
         if ($status === 'cancelled') {
-            // payment method
+            
             $pmq2 = mysqli_prepare($conn, 'SELECT payment_method FROM payments WHERE order_id = ? LIMIT 1');
             $pmethod = '';
             if ($pmq2) {
@@ -111,7 +108,7 @@ if ($stmt) {
                 $pmethod = $pmd2 ? trim($pmd2['payment_method']) : '';
             }
             if ($pmethod !== 'Cash on Delivery' && $pmethod !== '') {
-                // mark order payment_status as refunded
+                
                 mysqli_query($conn, "UPDATE orders SET payment_status = 'refunded' WHERE order_id = {$order_id}");
                 
                 mysqli_query($conn, "UPDATE payments SET reference_no = CONCAT(IFNULL(reference_no,''), '|REFUND'), amount_paid = 0 WHERE order_id = {$order_id}");

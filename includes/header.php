@@ -9,18 +9,18 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
     integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <!-- Elegant/classy fonts for the site (headings + body) -->
+ 
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
   <link href="/essence_db/includes/style/style.css" rel="stylesheet">
   <?php
-  // Load admin theme CSS if on an admin page
+ 
   $isAdminPage = strpos($_SERVER['REQUEST_URI'], '/admin/') !== false;
   if ($isAdminPage) {
     echo '<link href="/essence_db/includes/style/admin.css" rel="stylesheet">' . "\n";
   }
   ?>
   <style>
-    /* Admin sidebar styles - integrated into page flow so it scrolls with content */
+    
     .admin-sidebar-shared {
       position: static;
       float: left;
@@ -56,7 +56,7 @@
       border-left-color: #5A4939;
     }
 
-    /* Main content sits beside the sidebar when wide; both scroll together */
+   
     .admin-main-content {
       margin-left: 240px;
       padding: 28px;
@@ -82,7 +82,7 @@
   </script>
   <title>Shop</title>
   <script>
-    // Detect if on an admin page and add admin-mode class
+   
     if (window.location.pathname.includes('/admin/')) {
       document.addEventListener('DOMContentLoaded', function() {
         document.body.classList.add('admin-mode');
@@ -106,7 +106,7 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent" style="color #white">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <?php
-          // Show Dashboard for admins, Home for regular users
+         
           if (isset($_SESSION['user_id']) && isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
               echo '<li class="nav-item">';
               echo '<a class="nav-link active" aria-current="page" href="/essence_db/admin/dashboard.php">Dashboard</a>';
@@ -124,19 +124,19 @@
             <a class="nav-link" href="/essence_db/brands.php">Brands</a>
           </li>
           <?php
-          // Show admin dropdown only for admins (but NOT on admin pages - sidebar is shown instead)
+          
           $isAdminPage = strpos($_SERVER['REQUEST_URI'], '/admin/') !== false;
           $isAdmin = isset($_SESSION['user_id']) && isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
           
           if (isset($_SESSION['user_id']) && !$isAdmin && !$isAdminPage) {
-              // regular logged-in user: show Profile and My Orders as normal nav items (but only on non-admin pages)
+              
               echo '<li class="nav-item"><a class="nav-link" href="/essence_db/users/profile.php">Profile</a></li>';
               echo '<li class="nav-item"><a class="nav-link" href="/essence_db/users/my_orders.php">My Orders</a></li>';
           }
           ?>
         </ul>
         
-        <!-- Search bar (single across site) -->
+      
         <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="GET" class="d-flex me-3">
           <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="search" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
           <button class="btn btn-outline-success" type="submit">
@@ -144,7 +144,7 @@
           </button>
         </form>
 
-        <!-- Icons section -->
+        
         <div class="d-flex align-items-center">
           <?php if (!isset($isAdmin) || !$isAdmin): ?>
             <a href="/essence_db/users/profile.php" class="text-dark me-3">

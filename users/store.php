@@ -30,7 +30,6 @@ if (!empty($errors)) {
 
 $email = strtolower($email_raw);
 
-// check if email already exists
 $checkSql = "SELECT user_id FROM users WHERE email = ? LIMIT 1";
 $stmt = mysqli_prepare($conn, $checkSql);
 if ($stmt) {
@@ -51,12 +50,11 @@ if ($stmt) {
 $username_raw = strstr($email, '@', true) ?: $email;
 $username = substr(preg_replace('/[^A-Za-z0-9_\-\.]/', '', $username_raw), 0, 50);
 
-// hash password
+
 $password_hash = sha1($password_raw);
 
 $role = 'customer';
 
-// insert user with prepared statement
 $insertSql = "INSERT INTO users (username, password, role, email) VALUES (?, ?, ?, ?)";
 $stmt = mysqli_prepare($conn, $insertSql);
 if ($stmt) {
