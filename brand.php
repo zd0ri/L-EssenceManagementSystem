@@ -3,6 +3,7 @@ session_start();
 require_once __DIR__ . '/includes/config.php';
 include __DIR__ . '/includes/header.php';
 
+
 $brand_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $brand_name = isset($_GET['brand']) ? trim($_GET['brand']) : '';
 $brand_display = '';
@@ -79,7 +80,6 @@ $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/essence_db/';
     <div class="alert alert-info">No available products found for this brand.</div>
   <?php else: ?>
     <div id="popular-products">
-      <div class="container">
         <div class="products-grid">
       <?php foreach ($products as $row):
         $brandName = htmlspecialchars($row['brand_name']);

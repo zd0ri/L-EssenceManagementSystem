@@ -651,12 +651,19 @@ ALTER TABLE `payments`
 ALTER TABLE `products`
   ADD CONSTRAINT `products_ibfk_1` FOREIGN KEY (`brand_id`) REFERENCES `brands` (`brand_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
---
--- Constraints for table `sales_report`
---
+
 ALTER TABLE `sales_report`
   ADD CONSTRAINT `sales_report_ibfk_1` FOREIGN KEY (`generated_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 COMMIT;
+
+--
+-- Constraints for table `sales_report`
+--
+
+CREATE VIEW order_transaction_view AS SELECT o.order_id, oi.product_id, p.product_name, oi.quantity, oi.price_each, 
+(oi.quantity * oi.price_each) AS line_subtotal, o.total_amount, o.order_date, c.fullname, c.email 
+FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = 
+p.product_id JOIN customers c ON o.customer_id = c.customer_id;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
